@@ -7,7 +7,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	d := Init("/tmp/test-root", "", false)
+	d := Init("/tmp/test-root")
 	if d == nil {
 		t.Error("Expected to be not null, got ", d)
 	}
@@ -19,7 +19,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestMountName(t *testing.T) {
-	name := getMountName(&RcloneDriver{}, volume.Request{
+	name := getMountName(&RcloneDriver{}, volume.CreateRequest{
 		Name: "test",
 		Options: map[string]string{
 			"remote": "some-remote:bucket/",
