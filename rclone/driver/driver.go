@@ -84,13 +84,13 @@ func Init(root string) *RcloneDriver {
 }
 
 //Create create and init the requested volume
-func (d *RcloneDriver) Create(r volume.Request) volume.Response {
+func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 	log.Debugf("Entering Create: name: %s, options %v", r.Name, r.Options)
 	d.Lock()
 	defer d.Unlock()
 
 	if r.Options == nil || r.Options["config"] == "" || r.Options["remote"] == "" {
-		return volume.Response{Err: "config and remote option required"}
+		return fmt.Errorf("config and remote option required")
 	}
 
 	v := &rcloneVolume{
@@ -110,17 +110,17 @@ func (d *RcloneDriver) Create(r volume.Request) volume.Response {
 		_, err := os.Lstat(m.Path) //Create folder if not exist. This will also failed if already exist
 		if os.IsNotExist(err) {
 			if err = os.MkdirAll(m.Path, 0700); err != nil {
-				return volume.Response{Err: err.Error()}
+				return err
 			}
 		} else if err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 		isempty, err := isEmpty(m.Path)
 		if err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 		if !isempty {
-			return volume.Response{Err: fmt.Sprintf("%v already exist and is not empty !", m.Path)}
+			return fmt.Errorf("%v already exist and is not empty", m.Path)
 		}
 		d.mounts[v.Mount] = m
 	}
@@ -128,49 +128,15 @@ func (d *RcloneDriver) Create(r volume.Request) volume.Response {
 	d.volumes[r.Name] = v
 	log.Debugf("Volume Created: %v", v)
 	if err := d.saveConfig(); err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
-	return volume.Response{}
+	return nil
 
 }
 
-//Remove remove the requested volume
-func (d *RcloneDriver) Remove(r volume.Request) volume.Response {
-	//TODO remove related mounts
-	log.Debugf("Entering Remove: name: %s, options %v", r.Name, r.Options)
-	d.Lock()
-	defer d.Unlock()
-	v, ok := d.volumes[r.Name]
-	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume %s not found", r.Name)}
-	}
-	log.Debugf("Volume found: %s", v)
-
-	m, ok := d.mounts[v.Mount]
-	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
-	}
-	log.Debugf("Mount found: %s", m)
-
-	if v.Connections == 0 {
-		if m.Connections == 0 {
-			if err := os.Remove(m.Path); err != nil {
-				return volume.Response{Err: err.Error()}
-			}
-			delete(d.mounts, v.Mount)
-		}
-		delete(d.volumes, r.Name)
-		return volume.Response{}
-	}
-	if err := d.saveConfig(); err != nil {
-		return volume.Response{Err: err.Error()}
-	}
-	return volume.Response{Err: fmt.Sprintf("volume %s is currently used by a container", r.Name)}
-}
-
-//List volumes handled by thos driver
-func (d *RcloneDriver) List(r volume.Request) volume.Response {
-	log.Debugf("Entering List: name: %s, options %v", r.Name, r.Options)
+//List volumes handled by the driver
+func (d *RcloneDriver) List() (*volume.ListResponse, error) {
+	log.Debugf("Entering List")
 	d.Lock()
 	defer d.Unlock()
 
@@ -179,114 +145,148 @@ func (d *RcloneDriver) List(r volume.Request) volume.Response {
 		log.Debugf("Volume found: %s", v)
 		m, ok := d.mounts[v.Mount]
 		if !ok {
-			return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
+			return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, v.Remote)
 		}
 		log.Debugf("Mount found: %s", m)
 		vols = append(vols, &volume.Volume{Name: name, Mountpoint: m.Path})
 	}
-	return volume.Response{Volumes: vols}
+	return &volume.ListResponse{Volumes: vols}, nil
 }
 
 //Get get info on the requested volume
-func (d *RcloneDriver) Get(r volume.Request) volume.Response {
+func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 	log.Debugf("Entering Get: name: %s", r.Name)
 	d.Lock()
 	defer d.Unlock()
 
 	v, ok := d.volumes[r.Name]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume %s not found", r.Name)}
+		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
 	log.Debugf("Volume found: %s", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
+		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 	log.Debugf("Mount found: %s", m)
 
-	return volume.Response{Volume: &volume.Volume{Name: r.Name, Mountpoint: m.Path}}
+	return &volume.GetResponse{Volume: &volume.Volume{Name: r.Name, Mountpoint: m.Path}}, nil
+}
+
+//Remove remove the requested volume
+func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
+	//TODO remove related mounts
+	log.Debugf("Entering Remove: name: %s", r.Name)
+	d.Lock()
+	defer d.Unlock()
+	v, ok := d.volumes[r.Name]
+	if !ok {
+		return fmt.Errorf("volume %s not found", r.Name)
+	}
+	log.Debugf("Volume found: %s", v)
+
+	m, ok := d.mounts[v.Mount]
+	if !ok {
+		return fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
+	}
+	log.Debugf("Mount found: %s", m)
+
+	if v.Connections == 0 {
+		if m.Connections == 0 {
+			if err := os.Remove(m.Path); err != nil {
+				return err
+			}
+			delete(d.mounts, v.Mount)
+		}
+		delete(d.volumes, r.Name)
+		return nil
+	}
+	if err := d.saveConfig(); err != nil {
+		return err
+	}
+	return fmt.Errorf("volume %s is currently used by a container", r.Name)
 }
 
 //Path get path of the requested volume
-func (d *RcloneDriver) Path(r volume.Request) volume.Response {
+func (d *RcloneDriver) Path(r *volume.PathRequest) (*volume.PathResponse, error) {
 	log.Debugf("Entering Path: name: %s, options %v", r.Name)
 	d.RLock()
 	defer d.RUnlock()
 
 	v, ok := d.volumes[r.Name]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume %s not found", r.Name)}
+		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
 	log.Debugf("Volume found: %s", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
+		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 	log.Debugf("Mount found: %s", m)
 
-	return volume.Response{Mountpoint: m.Path}
+	return &volume.PathResponse{Mountpoint: m.Path}, nil
 }
 
 //Mount mount the requested volume
-func (d *RcloneDriver) Mount(r volume.MountRequest) volume.Response {
+func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, error) {
 	log.Debugf("Entering Mount: %v", r)
 	d.Lock()
 	defer d.Unlock()
 
 	v, ok := d.volumes[r.Name]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume %s not found", r.Name)}
+		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
+		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 
 	if m.Connections > 0 {
 		v.Connections++
 		m.Connections++
 		if err := d.saveConfig(); err != nil {
-			return volume.Response{Err: err.Error()}
+			return nil, err
 		}
-		return volume.Response{Mountpoint: m.Path}
+		return &volume.MountResponse{Mountpoint: m.Path}, nil
 	}
 
 	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 --decode) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
 	if err := d.runCmd(cmd); err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
 
 	v.Connections++
 	m.Connections++
 	if err := d.saveConfig(); err != nil {
-		return volume.Response{Err: err.Error()}
+		return nil, err
 	}
-	return volume.Response{Mountpoint: m.Path}
+	return &volume.MountResponse{Mountpoint: m.Path}, nil
 }
 
 //Unmount unmount the requested volume
-func (d *RcloneDriver) Unmount(r volume.UnmountRequest) volume.Response {
+func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 	log.Debugf("Entering Unmount: %v", r)
 	d.Lock()
 	defer d.Unlock()
 
 	v, ok := d.volumes[r.Name]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume %s not found", r.Name)}
+		return fmt.Errorf("volume %s not found", r.Name)
 	}
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
-		return volume.Response{Err: fmt.Sprintf("volume mount %s not found for %s", v.Mount, r.Name)}
+		return fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 
 	if m.Connections <= 1 {
 		cmd := fmt.Sprintf("/usr/bin/umount %s", m.Path)
 		if err := d.runCmd(cmd); err != nil {
-			return volume.Response{Err: err.Error()}
+			return err
 		}
 		m.Connections = 0
 		v.Connections = 0
@@ -296,15 +296,15 @@ func (d *RcloneDriver) Unmount(r volume.UnmountRequest) volume.Response {
 	}
 
 	if err := d.saveConfig(); err != nil {
-		return volume.Response{Err: err.Error()}
+		return err
 	}
-	return volume.Response{}
+	return nil
 }
 
 //Capabilities Send capabilities of the local driver
-func (d *GlusterDriver) Capabilities(r volume.Request) volume.Response {
-	log.Debugf("Entering Capabilities: %v", r)
-	return volume.Response{
+func (d *RcloneDriver) Capabilities() *volume.CapabilitiesResponse {
+	log.Debugf("Entering Capabilities")
+	return &volume.CapabilitiesResponse{
 		Capabilities: volume.Capability{
 			Scope: "local",
 		},

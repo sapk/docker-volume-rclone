@@ -50,7 +50,7 @@ func (d *RcloneDriver) runCmd(cmd string) error {
 	return exec.Command("bash", "-c", cmd).Run()
 }
 
-func getMountName(d *RcloneDriver, r volume.Request) string {
+func getMountName(d *RcloneDriver, r *volume.CreateRequest) string {
 	return r.Name
 }
 
