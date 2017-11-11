@@ -1,0 +1,7 @@
+.*
+!.git*
+plugin/
+support/
+
+/docker-volume-rclone
+/docker-volume-rclone*

@@ -1,0 +1,43 @@
+{
+    "description": "Rclone plugin for Docker",
+    "documentation": "https://docs.docker.com/engine/extend/plugins/",
+    "entrypoint": [
+        "/usr/bin/docker-volume-rclone",
+        "daemon"
+    ],
+    "env": [
+        {
+            "name": "DEBUG",
+            "settable": [
+                "value"
+            ],
+            "value": "0"
+        }
+    ],
+    "Args": {
+        "Description": "Arguments to be passed to the plugin",
+        "Name": "args",
+        "Settable": ["value"],
+        "Value": []
+    },
+    "interface": {
+        "socket": "rclone.sock",
+        "types": [
+            "docker.volumedriver/1.0"
+        ]
+    },
+    "linux": {
+        "capabilities": [
+            "CAP_SYS_ADMIN"
+        ],
+        "devices": [
+            {
+                "path": "/dev/fuse"
+            }
+        ]
+    },
+    "network": {
+        "type": "host"
+    },
+    "propagatedmount": "/var/lib/docker-volumes/rclone"
+}
