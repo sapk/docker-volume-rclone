@@ -13,7 +13,7 @@ Use Rclone cli in the plugin container so it depend on fuse on the host.
 ## Docker plugin (New & Easy method) [![Docker Pulls](https://img.shields.io/docker/pulls/sapk/plugin-rclone.svg)](https://hub.docker.com/r/sapk/plugin-rclone) [![ImageLayers Size](https://img.shields.io/imagelayers/image-size/sapk/plugin-rclone/latest.svg)](https://hub.docker.com/r/sapk/plugin-rclone)
 ```
 docker plugin install sapk/plugin-rclone
-docker volume create --driver sapk/plugin-rclone --opt voluri="<volumeserver>:<volumename>" --name test
+docker volume create --driver sapk/plugin-rclone --opt config="$(base64 ~/.config/rclone/rclone.conf)" --opt remote=some-remote:bucket/path --name test
 docker run -v test:/mnt --rm -ti ubuntu
 ```
 
@@ -36,9 +36,6 @@ Run listening volume drive deamon to listen for mount request
 Usage:
   docker-volume-rclone daemon [flags]
 
-Flags:
-  -o, --fuse-opts string   Fuse options to use moint point (default "big_writes,allow_other,auto_cache")
-
 Global Flags:
   -b, --basedir string   Mounted volume base directory (default "/var/lib/docker-volumes/rclone")
   -v, --verbose          Turns on verbose logging
@@ -46,7 +43,7 @@ Global Flags:
 
 ## Create and Mount volume
 ```
-docker volume create --driver rclone --opt voluri="<volumeserver>:<volumename>" --name test
+docker volume create --driver rclone --opt config="$(base64 ~/.config/rclone/rclone.conf)" --opt remote=some-remote:bucket/path --name test
 docker run -v test:/mnt --rm -ti ubuntu
 ```
 
@@ -56,7 +53,8 @@ volumes:
   some_vol:
     driver: sapk/plugin-rclone
     driver_opts:
-      voluri: "<volumeserver>:<volumename>"
+      config: "$(base64 ~/.config/rclone/rclone.conf)"
+      remote: "some-remote:bucket/path"
 ```
 
 ## Inspired from :

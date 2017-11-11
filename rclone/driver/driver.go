@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -53,11 +54,11 @@ func Init(root string) *RcloneDriver {
 	}
 
 	d.persitence.SetDefault("volumes", map[string]*rcloneVolume{})
-	d.persitence.SetConfigName("rclone-persistence")
+	d.persitence.SetConfigName("persistence")
 	d.persitence.SetConfigType("json")
 	d.persitence.AddConfigPath(CfgFolder)
 	if err := d.persitence.ReadInConfig(); err != nil { // Handle errors reading the config file
-		log.Warn("No persistence file found, I will start with a empty list of volume.", err)
+		log.Warn("No persistence file found, I will start with a empty list of volume. ", err)
 	} else {
 		log.Debug("Retrieving volume list from persistence file.")
 
@@ -200,8 +201,9 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 			delete(d.mounts, v.Mount)
 		}
 		delete(d.volumes, r.Name)
-		return nil
+		return d.saveConfig()
 	}
+
 	if err := d.saveConfig(); err != nil {
 		return err
 	}
@@ -254,9 +256,17 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		return &volume.MountResponse{Mountpoint: m.Path}, nil
 	}
 
-	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 --decode) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
+	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 --decode) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
 	if err := d.runCmd(cmd); err != nil {
 		return nil, err
+	}
+
+	cmdCheck := fmt.Sprintf("mount | grep %s > /dev/null", m.Path)
+	folderMounted := false
+	for !folderMounted {
+		log.Debugf("Waiting for mount: %s", m.Path)
+		time.Sleep(5 * time.Second)
+		folderMounted = (nil == d.runCmd(cmdCheck))
 	}
 
 	v.Connections++
