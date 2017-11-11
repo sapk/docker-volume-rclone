@@ -19,9 +19,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestMountName(t *testing.T) {
-	name := getMountName(&RcloneDriver{
-		mountUniqName: false,
-	}, volume.Request{
+	name := getMountName(&RcloneDriver{}, volume.Request{
 		Name: "test",
 		Options: map[string]string{
 			"remote": "some-remote:bucket/",
