@@ -37,5 +37,7 @@ deploy:
   api_key:
     secure: Hn6VHF90T7UHwodKJTcXai4mNKwPMtmw32Y/UzHIEdcjz4xED3LpAHa54FiknWP7DbYPTl7XDYIH3dUK20U16cKY+GF5Z16v0cDtqOvRiQJajeQ3W496U5T0XiQra7UrCTCnCHzt3C/cLk/UototJcybUERe7s7CCIuRiWX3WfwmbWITp7cAw9VKP2LUyle7+GYTKa/pS52zTnbj7+XnnuBqNr90kUUM05DqcpSeTCnucftLnW7FHa3KC0HmyI7a/vRSptdUPHpzH9+Uqr+G04hwxjLzF/LANs5Z2IaJj7KAB4fR0Na1rbCV2hMkndeILuMO+QiZOwpGk6YD23BfWL504TTdotwwrxrBUyWDVppNxbopL1zhGR9T1dXyGZnsPI0bJ4Z+HFc0Oh+VDIZxRO5oXFOmFWc/CGWgYbEwZ17M1elTLAcVATrL/n+sAcYo9xVcP+CJT+kQjJisYQ9CXEaiY25TJmNjg6Ha28fB+dCRwlTwoxXOhINzv8AWyTMBun83KZNXK4xJ0zYkJkB9jOpx3GPpr1XjMYXWr9oNZIreGIKWX113ULRJ+0SvMcd0tobzVd428ZlvIYuC1CmeP0iuSgzwmX3C60Jlxz4EnwRL3YAsIX/24BU//9elp/WZbATrUOyLTy9KVcUGFALmW0k7w2oTFGKY9DlCSbrdslk=
   file: "./docker-volume-rclone"
+  skip_cleanup: true
   on:
+    tags: true
     repo: sapk/docker-volume-rclone
