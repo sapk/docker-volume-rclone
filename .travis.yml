@@ -1,42 +1,41 @@
 language: go
 sudo: true
 services:
-  - docker
+- docker
 addons:
   apt:
     packages:
     - upx-ucl
 go:
-  - 1.8
-  - 1.9
-  - tip
-
+- 1.8
+- 1.9
+- tip
 before_install:
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  - sudo apt-get update
-  - sudo apt-get -y install docker-ce
-
+- curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+- sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu
+  $(lsb_release -cs) stable"
+- sudo apt-get update
+- sudo apt-get -y install docker-ce
 install:
-  - make dev-deps
+- make dev-deps
 script:
-  - make lint
-  - make build
-  - make test
-  - ./docker-volume-rclone
+- make lint
+- make build
+- make test
+- "./docker-volume-rclone"
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
 before_deploy:
-  - make compress
-  - docker --version
-  - make docker-plugin
-  - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"; fi
-  - make docker-plugin-push
+- make compress
+- docker --version
+- make docker-plugin
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME"
+  -p="$DOCKER_PASSWORD"; fi
+- make docker-plugin-push
 deploy:
   provider: releases
   api_key:
-    secure: SAD6luuJhgzS7ZavymCxLaTlCbxp9VQax0uf4ozWByt0uwsLKtDM4Je4c9z9bx40PmEBKOpSoso4umL4AcY1yrQ2UTMJD+GxedmqDnge2ibfhHZMTxeDkLF3JLsACfQmibNzN/+b9nNdgyzQYnB4+OvKOmEvtHWwNP7qOuU+9QTNK/rNt5MBXk29aJFL1/t3oIvCfHl1D96pssE6uVURcXiPGkgNcSLBUewYwPwqjGqgG/xu/lgQEwpW6AE4OfwJLpdGMR/V1DUNMNs47Gt7Vh+PBRm/M7cZUYyc+CRuXuSM+PKr9xlH8mFHu6IrcM4n5Sy94A7ldB5dfn9HA+WLXEOhSej3NB06sFkjITnKSWCVCGVzzXuH5CMiwBDRKmhFLunFe9Wcz52W2wIumesaNuZOm9LbiBV47UicggeiZkhar1tvjQoFgw6R57+Wxdhdon7fwVO3euRSH7fm0RyEN1PgO92U5/gHgOO+Khlsl3GPqWNgyqeh0Ej4Ke9mFB0VjO+a8uNAQlrp+v94kQSWqpXUD30/fnZhu+sBURJ1pikH/WAhcnKEvYk7Kq5/kSuYqO0dxxEDrHh00Gwo/uHhhnOp3BNe/v1/TseSS4FOxaLrbTKCDRU+B38bsi8FoZ7J68xK9dT19TF+6ZXqka1LNIyV4ITCjkRenHMfCWWrF78=
+    secure: Hn6VHF90T7UHwodKJTcXai4mNKwPMtmw32Y/UzHIEdcjz4xED3LpAHa54FiknWP7DbYPTl7XDYIH3dUK20U16cKY+GF5Z16v0cDtqOvRiQJajeQ3W496U5T0XiQra7UrCTCnCHzt3C/cLk/UototJcybUERe7s7CCIuRiWX3WfwmbWITp7cAw9VKP2LUyle7+GYTKa/pS52zTnbj7+XnnuBqNr90kUUM05DqcpSeTCnucftLnW7FHa3KC0HmyI7a/vRSptdUPHpzH9+Uqr+G04hwxjLzF/LANs5Z2IaJj7KAB4fR0Na1rbCV2hMkndeILuMO+QiZOwpGk6YD23BfWL504TTdotwwrxrBUyWDVppNxbopL1zhGR9T1dXyGZnsPI0bJ4Z+HFc0Oh+VDIZxRO5oXFOmFWc/CGWgYbEwZ17M1elTLAcVATrL/n+sAcYo9xVcP+CJT+kQjJisYQ9CXEaiY25TJmNjg6Ha28fB+dCRwlTwoxXOhINzv8AWyTMBun83KZNXK4xJ0zYkJkB9jOpx3GPpr1XjMYXWr9oNZIreGIKWX113ULRJ+0SvMcd0tobzVd428ZlvIYuC1CmeP0iuSgzwmX3C60Jlxz4EnwRL3YAsIX/24BU//9elp/WZbATrUOyLTy9KVcUGFALmW0k7w2oTFGKY9DlCSbrdslk=
   file: "./docker-volume-rclone"
-  skip_cleanup: true
   on:
-    tags: true
+    repo: sapk/docker-volume-rclone

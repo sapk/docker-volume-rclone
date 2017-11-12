@@ -261,6 +261,7 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		return nil, err
 	}
 
+	/* TODO test more this before using it.
 	cmdCheck := fmt.Sprintf("mount | grep %s > /dev/null", m.Path)
 	folderMounted := false
 	for !folderMounted {
@@ -268,6 +269,9 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		time.Sleep(5 * time.Second)
 		folderMounted = (nil == d.runCmd(cmdCheck))
 	}
+	*/
+	//Temporary fix
+	time.Sleep(15 * time.Second)
 
 	v.Connections++
 	m.Connections++
