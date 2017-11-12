@@ -1,7 +1,9 @@
 FROM golang:alpine AS build-env
 COPY . /go/src/app
 WORKDIR /go/src/app
-RUN make build
+
+RUN apk add --no-cache make \
+ && make build
 
 FROM golang:alpine AS build-rclone
 RUN go get -u -v github.com/ncw/rclone
