@@ -6,7 +6,7 @@
 
 Use Rclone as a backend for docker volume
 
-Status : **proof of concept (working)**
+Status : **proof of concept (not working)**
 
 Use Rclone cli in the plugin container so it depend on fuse on the host.
 
