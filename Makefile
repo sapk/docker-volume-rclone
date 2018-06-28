@@ -1,5 +1,9 @@
 #Inspired from : https://github.com/littlemanco/boilr-makefile/blob/master/template/Makefile, https://github.com/geetarista/go-boilerplate/blob/master/Makefile, https://github.com/nascii/go-boilerplate/blob/master/GNUmakefile https://github.com/cloudflare/hellogopher/blob/master/Makefile
 #PATH=$(PATH:):$(GOPATH)/bin
+
+#Auto set GOPATH value
+GOPATH ?=$(shell go env GOPATH)
+
 APP_NAME=docker-volume-rclone
 APP_VERSION=$(shell git describe --tags --abbrev=0)
 APP_USERREPO=github.com/sapk
