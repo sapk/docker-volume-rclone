@@ -15,10 +15,10 @@
         }
     ],
     "Args": {
-        "Description": "Arguments to be passed to the plugin",
-        "Name": "args",
-        "Settable": ["value"],
-        "Value": []
+        "Description": "",
+        "Name": "",
+        "Settable": null,
+        "Value": null
     },
     "interface": {
         "socket": "rclone.sock",

@@ -127,6 +127,7 @@ clean:
 	@if [ -d build ]; then rm -R build; fi
 	@if [ -d $(FAKE_GOPATH) ]; then rm -R $(FAKE_GOPATH); fi
 	@rm -rf ./plugin
+	@go clean ./...
 
 compress:
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
@@ -171,10 +172,12 @@ update-dev-deps:
 
 deps:
 	@echo -e "$(OK_COLOR)==> Installing dependencies ...$(NO_COLOR)"
+	@go get github.com/golang/dep/cmd/dep #Vendoring
 	@$(GOPATH)/bin/dep ensure
 
 update-deps: dev-deps
 	@echo -e "$(OK_COLOR)==> Updating all dependencies ...$(NO_COLOR)"
+	@go get github.com/golang/dep/cmd/dep #Vendoring
 	$(GOPATH)/bin/dep ensure -update
 
 done:

@@ -178,6 +178,8 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 //Remove remove the requested volume
 func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	//TODO remove related mounts
+	//TODO Error response from daemon: unable to remove volume: remove hubic-crypt: VolumeDriver.Remove: volume hubic-crypt is currently used by a container
+
 	log.Debugf("Entering Remove: name: %s", r.Name)
 	d.Lock()
 	defer d.Unlock()
@@ -193,21 +195,23 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	}
 	log.Debugf("Mount found: %s", m)
 
-	if v.Connections == 0 {
-		if m.Connections == 0 {
-			if err := os.Remove(m.Path); err != nil {
-				return err
-			}
-			delete(d.mounts, v.Mount)
-		}
-		delete(d.volumes, r.Name)
-		return d.saveConfig()
-	}
-
-	if err := d.saveConfig(); err != nil {
+	//disable check as it seems to fail and in this plugin v.Mount = r.Name
+	//if v.Connections == 0 {
+	//	if m.Connections == 0 {
+	if err := os.Remove(m.Path); err != nil {
 		return err
 	}
-	return fmt.Errorf("volume %s is currently used by a container", r.Name)
+	delete(d.mounts, v.Mount)
+	//}
+	delete(d.volumes, r.Name)
+	return d.saveConfig()
+	//}
+	/*
+		if err := d.saveConfig(); err != nil {
+			return err
+		}
+		return fmt.Errorf("volume %s is currently used by a container", r.Name)
+	*/
 }
 
 //Path get path of the requested volume
@@ -256,7 +260,10 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		return &volume.MountResponse{Mountpoint: m.Path}, nil
 	}
 
-	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 --decode) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
+	//TODO log only on debug
+	//TODO write temp file before dans don't use base64
+	//	cmd := fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
+	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
 	if err := d.runCmd(cmd); err != nil {
 		return nil, err
 	}
