@@ -65,18 +65,18 @@ func Init(root string) *RcloneDriver {
 		var version int
 		err := d.persitence.UnmarshalKey("version", &version)
 		if err != nil || version != CfgVersion {
-			log.Warn("Unable to decode version of persistence, %v", err)
+			log.Warn("Unable to decode version of persistence, %s", err.Error())
 			d.volumes = make(map[string]*rcloneVolume)
 			d.mounts = make(map[string]*rcloneMountpoint)
 		} else { //We have the same version
 			err := d.persitence.UnmarshalKey("volumes", &d.volumes)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %v", err)
+				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.volumes = make(map[string]*rcloneVolume)
 			}
 			err = d.persitence.UnmarshalKey("mounts", &d.mounts)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %v", err)
+				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.mounts = make(map[string]*rcloneMountpoint)
 			}
 		}
@@ -128,11 +128,7 @@ func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 
 	d.volumes[r.Name] = v
 	log.Debugf("Volume Created: %v", v)
-	if err := d.saveConfig(); err != nil {
-		return err
-	}
-	return nil
-
+	return d.saveConfig()
 }
 
 //List volumes handled by the driver
@@ -148,7 +144,7 @@ func (d *RcloneDriver) List() (*volume.ListResponse, error) {
 		if !ok {
 			return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, v.Remote)
 		}
-		log.Debugf("Mount found: %s", m)
+		log.Debugf("Mount found: %v", m)
 		vols = append(vols, &volume.Volume{Name: name, Mountpoint: m.Path})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
@@ -164,7 +160,7 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 	if !ok {
 		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
-	log.Debugf("Volume found: %s", v)
+	log.Debugf("Volume found: %v", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {

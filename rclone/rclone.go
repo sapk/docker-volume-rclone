@@ -86,7 +86,7 @@ func setupLogger(cmd *cobra.Command, args []string) {
 	if verbose, _ := cmd.Flags().GetBool(VerboseFlag); verbose {
 		log.SetLevel(log.DebugLevel)
 		//Activate log to file in debug mode
-		f, err := os.OpenFile("/var/log/docker-volume-rclone.log", os.O_WRONLY|os.O_CREATE, 0755)
+		f, err := os.OpenFile("/var/log/docker-volume-rclone.log", os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}

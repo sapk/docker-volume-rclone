@@ -33,12 +33,12 @@ func (d *RcloneDriver) saveConfig() error {
 	}
 	b, err := json.Marshal(RclonePersistence{Version: CfgVersion, Volumes: d.volumes, Mounts: d.mounts})
 	if err != nil {
-		log.Warn("Unable to encode persistence struct, %v", err)
+		log.Warn("Unable to encode persistence struct, %s", err.Error())
 	}
 	//log.Debug("Writing persistence struct, %v", b, d.volumes)
 	err = ioutil.WriteFile(CfgFolder+"/persistence.json", b, 0600)
 	if err != nil {
-		log.Warn("Unable to write persistence struct, %v", err)
+		log.Warn("Unable to write persistence struct, %s", err.Error())
 	}
 	//TODO display error messages
 	return err
@@ -67,7 +67,12 @@ func isEmpty(name string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
+	defer func() {
+		cerr := f.Close()
+		if err == nil && cerr != nil {
+			err = cerr
+		}
+	}()
 
 	_, err = f.Readdirnames(1) // Or f.Readdir(1)
 	if err == io.EOF {
