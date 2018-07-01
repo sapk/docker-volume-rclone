@@ -6,7 +6,7 @@
 
 Use Rclone as a backend for docker volume
 
-Status : **proof of concept (not working)**
+Status : **proof of concept (working)**
 
 Use Rclone cli in the plugin container so it depend on fuse on the host.
 
@@ -63,3 +63,16 @@ volumes:
  - https://github.com/sapk/docker-volume-gvfs
  - https://github.com/calavera/docker-volume-glusterfs
  - https://github.com/codedellemc/rexray
+
+## How to debug docker managed plugin :
+```
+#Restart plugin in debug mode
+docker plugin disable sapk/plugin-rclone
+docker plugin set sapk/plugin-rclone DEBUG=1
+docker plugin enable sapk/plugin-rclone
+
+#Get files under /var/log of plugin
+docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby list
+docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/rclone.log
+docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/docker-volume-rclone.log
+```
