@@ -2,6 +2,7 @@ package rclone
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/docker/go-plugins-helpers/volume"
@@ -77,11 +78,17 @@ func DaemonStart(cmd *cobra.Command, args []string) {
 }
 
 func setupFlags() {
-	rootCmd.PersistentFlags().BoolP(VerboseFlag, "v", false, "Turns on verbose logging")
+	rootCmd.PersistentFlags().BoolP(VerboseFlag, "v", os.Getenv("DEBUG") == "1", "Turns on verbose logging")
 	rootCmd.PersistentFlags().StringVarP(&baseDir, BasedirFlag, "b", filepath.Join(volume.DefaultDockerRootDirectory, PluginAlias), "Mounted volume base directory")
 }
 
 func setupLogger(cmd *cobra.Command, args []string) {
+	//TODO remove temporary debug
+	f, err := os.OpenFile("/var/log/docker-volume-rclone.log", os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetOutput(f)
 	if verbose, _ := cmd.Flags().GetBool(VerboseFlag); verbose {
 		log.SetLevel(log.DebugLevel)
 	} else {

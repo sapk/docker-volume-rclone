@@ -263,7 +263,7 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 	//TODO log only on debug
 	//TODO write temp file before dans don't use base64
 	//	cmd := fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
-	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\"", v.Config, v.Args, v.Remote, m.Path)
+	cmd := fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
 	if err := d.runCmd(cmd); err != nil {
 		return nil, err
 	}

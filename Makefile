@@ -48,7 +48,7 @@ docker-plugin: docker-rootfs docker-plugin-create
 
 docker-image:
 	@echo -e "$(OK_COLOR)==> Docker build image : ${PLUGIN_IMAGE} $(NO_COLOR)"
-	docker build -t ${PLUGIN_IMAGE} -f support/docker/Dockerfile .
+	docker build --no-cache --pull -t ${PLUGIN_IMAGE} -f support/docker/Dockerfile .
 
 docker-rootfs: docker-image
 	@echo -e "$(OK_COLOR)==> create rootfs directory in ./plugin/rootfs$(NO_COLOR)"

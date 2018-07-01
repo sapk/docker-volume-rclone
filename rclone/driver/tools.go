@@ -47,7 +47,14 @@ func (d *RcloneDriver) saveConfig() error {
 // run deamon in context of this gvfs drive with custome env
 func (d *RcloneDriver) runCmd(cmd string) error {
 	log.Debugf(cmd)
+	/*
+		cli := exec.Command("/bin/bash", "-c", cmd)
+		stdoutStderr, err := cli.CombinedOutput()
+		log.Debugf("%s", stdoutStderr)
+		return err
+	*/
 	return exec.Command("/bin/bash", "-c", cmd).Run()
+	//TODO output log
 }
 
 func getMountName(d *RcloneDriver, r *volume.CreateRequest) string {
