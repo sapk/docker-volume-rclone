@@ -54,6 +54,7 @@ volumes:
     driver: sapk/plugin-rclone
     driver_opts:
       config: "$(base64 ~/.config/rclone/rclone.conf)"
+      args: "--read-only --fast-list"
       remote: "some-remote:bucket/path"
 ```
 
