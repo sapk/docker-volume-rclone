@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/spf13/viper"
@@ -65,18 +65,18 @@ func Init(root string) *RcloneDriver {
 		var version int
 		err := d.persitence.UnmarshalKey("version", &version)
 		if err != nil || version != CfgVersion {
-			log.Warn("Unable to decode version of persistence, %v", err)
+			log.Warn("Unable to decode version of persistence, %s", err.Error())
 			d.volumes = make(map[string]*rcloneVolume)
 			d.mounts = make(map[string]*rcloneMountpoint)
 		} else { //We have the same version
 			err := d.persitence.UnmarshalKey("volumes", &d.volumes)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %v", err)
+				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.volumes = make(map[string]*rcloneVolume)
 			}
 			err = d.persitence.UnmarshalKey("mounts", &d.mounts)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %v", err)
+				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.mounts = make(map[string]*rcloneMountpoint)
 			}
 		}
@@ -128,11 +128,7 @@ func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 
 	d.volumes[r.Name] = v
 	log.Debugf("Volume Created: %v", v)
-	if err := d.saveConfig(); err != nil {
-		return err
-	}
-	return nil
-
+	return d.saveConfig()
 }
 
 //List volumes handled by the driver
@@ -148,7 +144,7 @@ func (d *RcloneDriver) List() (*volume.ListResponse, error) {
 		if !ok {
 			return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, v.Remote)
 		}
-		log.Debugf("Mount found: %s", m)
+		log.Debugf("Mount found: %v", m)
 		vols = append(vols, &volume.Volume{Name: name, Mountpoint: m.Path})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
@@ -164,7 +160,7 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 	if !ok {
 		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
-	log.Debugf("Volume found: %s", v)
+	log.Debugf("Volume found: %v", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
@@ -178,6 +174,8 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 //Remove remove the requested volume
 func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	//TODO remove related mounts
+	//TODO Error response from daemon: unable to remove volume: remove hubic-crypt: VolumeDriver.Remove: volume hubic-crypt is currently used by a container
+
 	log.Debugf("Entering Remove: name: %s", r.Name)
 	d.Lock()
 	defer d.Unlock()
@@ -193,21 +191,23 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	}
 	log.Debugf("Mount found: %s", m)
 
-	if v.Connections == 0 {
-		if m.Connections == 0 {
-			if err := os.Remove(m.Path); err != nil {
-				return err
-			}
-			delete(d.mounts, v.Mount)
-		}
-		delete(d.volumes, r.Name)
-		return d.saveConfig()
-	}
-
-	if err := d.saveConfig(); err != nil {
+	//disable check as it seems to fail and in this plugin v.Mount = r.Name
+	//if v.Connections == 0 {
+	//	if m.Connections == 0 {
+	if err := os.Remove(m.Path); err != nil {
 		return err
 	}
-	return fmt.Errorf("volume %s is currently used by a container", r.Name)
+	delete(d.mounts, v.Mount)
+	//}
+	delete(d.volumes, r.Name)
+	return d.saveConfig()
+	//}
+	/*
+		if err := d.saveConfig(); err != nil {
+			return err
+		}
+		return fmt.Errorf("volume %s is currently used by a container", r.Name)
+	*/
 }
 
 //Path get path of the requested volume
@@ -256,7 +256,13 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		return &volume.MountResponse{Mountpoint: m.Path}, nil
 	}
 
-	cmd := fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 --decode) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
+	//TODO write temp file before dans don't use base64
+	var cmd string
+	if log.GetLevel() == log.DebugLevel {
+		cmd = fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
+	} else {
+		cmd = fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
+	}
 	if err := d.runCmd(cmd); err != nil {
 		return nil, err
 	}

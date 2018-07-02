@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/exec"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/docker/go-plugins-helpers/volume"
+	log "github.com/sirupsen/logrus"
 )
 
 //RclonePersistence represent struct of persistence file
@@ -33,12 +33,12 @@ func (d *RcloneDriver) saveConfig() error {
 	}
 	b, err := json.Marshal(RclonePersistence{Version: CfgVersion, Volumes: d.volumes, Mounts: d.mounts})
 	if err != nil {
-		log.Warn("Unable to encode persistence struct, %v", err)
+		log.Warn("Unable to encode persistence struct, %s", err.Error())
 	}
 	//log.Debug("Writing persistence struct, %v", b, d.volumes)
 	err = ioutil.WriteFile(CfgFolder+"/persistence.json", b, 0600)
 	if err != nil {
-		log.Warn("Unable to write persistence struct, %v", err)
+		log.Warn("Unable to write persistence struct, %s", err.Error())
 	}
 	//TODO display error messages
 	return err
@@ -47,7 +47,14 @@ func (d *RcloneDriver) saveConfig() error {
 // run deamon in context of this gvfs drive with custome env
 func (d *RcloneDriver) runCmd(cmd string) error {
 	log.Debugf(cmd)
-	return exec.Command("bash", "-c", cmd).Run()
+	/*
+		cli := exec.Command("/bin/bash", "-c", cmd)
+		stdoutStderr, err := cli.CombinedOutput()
+		log.Debugf("%s", stdoutStderr)
+		return err
+	*/
+	return exec.Command("/bin/bash", "-c", cmd).Run()
+	//TODO output log
 }
 
 func getMountName(d *RcloneDriver, r *volume.CreateRequest) string {
@@ -60,7 +67,12 @@ func isEmpty(name string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
+	defer func() {
+		cerr := f.Close()
+		if err == nil && cerr != nil {
+			err = cerr
+		}
+	}()
 
 	_, err = f.Readdirnames(1) // Or f.Readdir(1)
 	if err == io.EOF {
