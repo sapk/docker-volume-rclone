@@ -6,9 +6,6 @@ GOPATH ?=$(shell go env GOPATH)
 
 APP_NAME=docker-volume-rclone
 APP_VERSION=$(shell git describe --tags --abbrev=0)
-APP_USERREPO=github.com/sapk
-APP_PACKAGE=$(APP_USERREPO)/$(APP_NAME)
-
 
 PLUGIN_USER ?= sapk
 PLUGIN_NAME ?= plugin-rclone
@@ -26,10 +23,6 @@ LDFLAGS = \
   -s -w \
   -X main.Version=$(APP_VERSION) -X main.Branch=$(GIT_BRANCH) -X main.Commit=$(GIT_HASH) -X main.BuildTime=$(DATE)
 
-FAKE_GOPATH = $(PWD)/.gopath
-FAKE_PACKAGE = $(FAKE_GOPATH)/src/$(APP_PACKAGE)
-
-GO15VENDOREXPERIMENT=1
 DOC_PORT = 6060
 #GOOS=linux
 
@@ -37,8 +30,6 @@ ERROR_COLOR=\033[31;01m
 NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
 WARN_COLOR=\033[33;01m
-
-#TODO remove useless $FAKE_GOPATH useless now with dep
 
 all: build compress done
 
@@ -74,48 +65,44 @@ docker-plugin-enable:
 	@echo -e "$(OK_COLOR)==> Enable plugin ${PLUGIN_IMAGE}$(NO_COLOR)"
 	docker plugin enable ${PLUGIN_IMAGE}
 
-set-build:
-	@if [ ! -d $(PWD)/.gopath/src/$(APP_USERREPO) ]; then mkdir -p $(PWD)/.gopath/src/$(APP_USERREPO); fi
-	@if [ ! -d $(PWD)/.gopath/src/$(APP_PACKAGE) ]; then ln -s $(PWD) $(PWD)/.gopath/src/$(APP_PACKAGE); fi
-
-compile: set-build
+compile:
 	@echo -e "$(OK_COLOR)==> Building...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) go build -v -ldflags "$(LDFLAGS)"
+	go build -v -ldflags "$(LDFLAGS)"
 
-release: clean set-build deps format
+release: clean deps format
 	@mkdir build
 	@echo -e "$(OK_COLOR)==> Building for linux 32 ...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o build/${APP_NAME}-linux-386 -ldflags "$(LDFLAGS)"
+	CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o build/${APP_NAME}-linux-386 -ldflags "$(LDFLAGS)"
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute  build/${APP_NAME}-linux-386 || upx-ucl --brute  build/${APP_NAME}-linux-386 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 	@echo -e "$(OK_COLOR)==> Building for linux 64 ...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/${APP_NAME}-linux-amd64 -ldflags "$(LDFLAGS)"
+	GO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/${APP_NAME}-linux-amd64 -ldflags "$(LDFLAGS)"
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute  build/${APP_NAME}-linux-amd64 || upx-ucl --brute  build/${APP_NAME}-linux-amd64 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 	@echo -e "$(OK_COLOR)==> Building for linux arm ...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o build/${APP_NAME}-linux-armv6 -ldflags "$(LDFLAGS)"
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o build/${APP_NAME}-linux-armv6 -ldflags "$(LDFLAGS)"
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute  build/${APP_NAME}-linux-armv6 || upx-ucl --brute  build/${APP_NAME}-linux-armv6 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 	@echo -e "$(OK_COLOR)==> Building for darwin32 ...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o build/${APP_NAME}-darwin-386 -ldflags "$(LDFLAGS)"
+	CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build -o build/${APP_NAME}-darwin-386 -ldflags "$(LDFLAGS)"
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute  build/${APP_NAME}-darwin-386 || upx-ucl --brute  build/${APP_NAME}-darwin-386 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 	@echo -e "$(OK_COLOR)==> Building for darwin64 ...$(NO_COLOR)"
-	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o build/${APP_NAME}-darwin-amd64 -ldflags "$(LDFLAGS)"
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o build/${APP_NAME}-darwin-amd64 -ldflags "$(LDFLAGS)"
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute  build/${APP_NAME}-darwin-amd64 || upx-ucl --brute  build/${APP_NAME}-darwin-amd64 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 #	@echo -e "$(OK_COLOR)==> Building for win32 ...$(NO_COLOR)"
-#	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o build/${APP_NAME}-win-386 -ldflags "$(LDFLAGS)"
+#	CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o build/${APP_NAME}-win-386 -ldflags "$(LDFLAGS)"
 #	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 #	@upx --brute  build/${APP_NAME}-win-386 || upx-ucl --brute  build/${APP_NAME}-win-386 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
 #	@echo -e "$(OK_COLOR)==> Building for win64 ...$(NO_COLOR)"
-#	cd $(FAKE_PACKAGE) && GOPATH=$(FAKE_GOPATH) CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/${APP_NAME}-win-amd64 -ldflags "$(LDFLAGS)"
+#	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/${APP_NAME}-win-amd64 -ldflags "$(LDFLAGS)"
 #	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 #	@upx --brute  build/${APP_NAME}-win-amd64 || upx-ucl --brute  build/${APP_NAME}-win-amd64 || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
 
@@ -125,7 +112,6 @@ release: clean set-build deps format
 clean:
 	@if [ -x $(APP_NAME) ]; then rm $(APP_NAME); fi
 	@if [ -d build ]; then rm -R build; fi
-	@if [ -d $(FAKE_GOPATH) ]; then rm -R $(FAKE_GOPATH); fi
 	@rm -rf ./plugin
 	@go clean ./...
 
@@ -183,4 +169,4 @@ update-deps: dev-deps
 done:
 	@echo -e "$(OK_COLOR)==> Done.$(NO_COLOR)"
 
-.PHONY: all build compile clean compress format test docs lint dev-deps update-dev-deps deps update-deps done
+.PHONY: all build docker-plugin docker-plugin-enable docker-plugin-push docker-plugin-create docker-rootfs docker-image compile release clean compress format test docs lint dev-deps update-dev-deps deps update-deps done
