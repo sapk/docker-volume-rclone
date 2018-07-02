@@ -4,7 +4,7 @@
  master : [![Travis master](https://api.travis-ci.org/sapk/docker-volume-rclone.svg?branch=master)](https://travis-ci.org/sapk/docker-volume-rclone) develop : [![Travis develop](https://api.travis-ci.org/sapk/docker-volume-rclone.svg?branch=develop)](https://travis-ci.org/sapk/docker-volume-rclone)
 
 
-Use Rclone as a backend for docker volume
+Use Rclone as a backend for docker volume. This permit to easely mount a lot of cloud provider (https://rclone.org/overview/).
 
 Status : **proof of concept (working)**
 
