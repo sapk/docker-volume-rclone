@@ -194,6 +194,11 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	//disable check as it seems to fail and in this plugin v.Mount = r.Name
 	//if v.Connections == 0 {
 	//	if m.Connections == 0 {
+	//Unmount
+	if err := d.runCmd(fmt.Sprintf("umount \"%s\"", m.Path)); err != nil {
+		return err
+	}
+	//Remove mount point
 	if err := os.Remove(m.Path); err != nil {
 		return err
 	}
