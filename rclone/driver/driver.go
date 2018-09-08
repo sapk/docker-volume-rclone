@@ -33,6 +33,7 @@ type rcloneVolume struct {
 	Remote      string `json:"remote"`
 	Mount       string `json:"mount"`
 	Connections int    `json:"connections"`
+	CreatedAt   string `json:"created_at"`
 }
 
 //RcloneDriver the global driver responding to call
@@ -100,6 +101,7 @@ func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 		Args:        r.Options["args"],
 		Mount:       getMountName(d, r),
 		Connections: 0,
+		CreatedAt:   time.Now().Format(time.RFC3339),
 	}
 
 	if _, ok := d.mounts[v.Mount]; !ok { //This mountpoint doesn't allready exist -> create it
@@ -145,7 +147,7 @@ func (d *RcloneDriver) List() (*volume.ListResponse, error) {
 			return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, v.Remote)
 		}
 		log.Debugf("Mount found: %v", m)
-		vols = append(vols, &volume.Volume{Name: name, Mountpoint: m.Path})
+		vols = append(vols, &volume.Volume{Name: name, Mountpoint: m.Path, CreatedAt: v.CreatedAt})
 	}
 	return &volume.ListResponse{Volumes: vols}, nil
 }
@@ -168,7 +170,7 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 	}
 	log.Debugf("Mount found: %v", m)
 
-	return &volume.GetResponse{Volume: &volume.Volume{Name: r.Name, Mountpoint: m.Path}}, nil
+	return &volume.GetResponse{Volume: &volume.Volume{Name: r.Name, Mountpoint: m.Path, CreatedAt: v.CreatedAt}}, nil
 }
 
 //Remove remove the requested volume
