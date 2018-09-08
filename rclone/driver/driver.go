@@ -65,18 +65,18 @@ func Init(root string) *RcloneDriver {
 		var version int
 		err := d.persitence.UnmarshalKey("version", &version)
 		if err != nil || version != CfgVersion {
-			log.Warn("Unable to decode version of persistence, %s", err.Error())
+			log.Warnf("Unable to decode version of persistence, %s", err.Error())
 			d.volumes = make(map[string]*rcloneVolume)
 			d.mounts = make(map[string]*rcloneMountpoint)
 		} else { //We have the same version
 			err := d.persitence.UnmarshalKey("volumes", &d.volumes)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
+				log.Warnf("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.volumes = make(map[string]*rcloneVolume)
 			}
 			err = d.persitence.UnmarshalKey("mounts", &d.mounts)
 			if err != nil {
-				log.Warn("Unable to decode into struct -> start with empty list, %s", err.Error())
+				log.Warnf("Unable to decode into struct -> start with empty list, %s", err.Error())
 				d.mounts = make(map[string]*rcloneMountpoint)
 			}
 		}
@@ -139,7 +139,7 @@ func (d *RcloneDriver) List() (*volume.ListResponse, error) {
 
 	var vols []*volume.Volume
 	for name, v := range d.volumes {
-		log.Debugf("Volume found: %s", v)
+		log.Debugf("Volume found: %v", v)
 		m, ok := d.mounts[v.Mount]
 		if !ok {
 			return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, v.Remote)
@@ -166,7 +166,7 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 	if !ok {
 		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
-	log.Debugf("Mount found: %s", m)
+	log.Debugf("Mount found: %v", m)
 
 	return &volume.GetResponse{Volume: &volume.Volume{Name: r.Name, Mountpoint: m.Path}}, nil
 }
@@ -183,13 +183,13 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	if !ok {
 		return fmt.Errorf("volume %s not found", r.Name)
 	}
-	log.Debugf("Volume found: %s", v)
+	log.Debugf("Volume found: %v", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
 		return fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
-	log.Debugf("Mount found: %s", m)
+	log.Debugf("Mount found: %v", m)
 
 	//disable check as it seems to fail and in this plugin v.Mount = r.Name
 	//if v.Connections == 0 {
@@ -217,7 +217,7 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 
 //Path get path of the requested volume
 func (d *RcloneDriver) Path(r *volume.PathRequest) (*volume.PathResponse, error) {
-	log.Debugf("Entering Path: name: %s, options %v", r.Name)
+	log.Debugf("Entering Path: name: %s", r.Name)
 	d.RLock()
 	defer d.RUnlock()
 
@@ -225,13 +225,13 @@ func (d *RcloneDriver) Path(r *volume.PathRequest) (*volume.PathResponse, error)
 	if !ok {
 		return nil, fmt.Errorf("volume %s not found", r.Name)
 	}
-	log.Debugf("Volume found: %s", v)
+	log.Debugf("Volume found: %v", v)
 
 	m, ok := d.mounts[v.Mount]
 	if !ok {
 		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
-	log.Debugf("Mount found: %s", m)
+	log.Debugf("Mount found: %v", m)
 
 	return &volume.PathResponse{Mountpoint: m.Path}, nil
 }
