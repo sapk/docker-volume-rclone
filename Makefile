@@ -31,9 +31,11 @@ NO_COLOR=\033[0m
 OK_COLOR=\033[32;01m
 WARN_COLOR=\033[33;01m
 
+GO111MODULE=on
+
 all: build compress done
 
-build: deps clean format compile
+build: clean format compile
 
 docker-plugin: docker-rootfs docker-plugin-create
 
@@ -123,7 +125,7 @@ format:
 	@echo -e "$(OK_COLOR)==> Formatting...$(NO_COLOR)"
 	go fmt ./rclone/...
 
-test: dev-deps deps format
+test: dev-deps format
 	@echo -e "$(OK_COLOR)==> Running tests...$(NO_COLOR)"
 	go vet ./rclone/... || true
 	go test -v -race -coverprofile=coverage.unit.out -covermode=atomic ./rclone/driver
@@ -142,29 +144,27 @@ lint: dev-deps
 
 dev-deps:
 	@echo -e "$(OK_COLOR)==> Installing developement dependencies...$(NO_COLOR)"
-	@go get github.com/nsf/gocode
-	@go get github.com/alecthomas/gometalinter
-	@go get github.com/golang/dep/cmd/dep #Vendoring
-	@go get github.com/wadey/gocovmerge
-	@$(GOPATH)/bin/gometalinter --install > /dev/null
+	@GO111MODULE=off go get github.com/nsf/gocode
+	@GO111MODULE=off go get github.com/alecthomas/gometalinter
+	@GO111MODULE=off go get github.com/wadey/gocovmerge
+	@GO111MODULE=off $(GOPATH)/bin/gometalinter --install > /dev/null
 
 update-dev-deps:
 	@echo -e "$(OK_COLOR)==> Installing/Updating developement dependencies...$(NO_COLOR)"
-	go get -u github.com/nsf/gocode
-	go get -u github.com/alecthomas/gometalinter
-	go get -u github.com/golang/dep/cmd/dep #Vendoring
-	go get -u github.com/wadey/gocovmerge
-	$(GOPATH)/bin/gometalinter --install --update
+	GO111MODULE=off go get -u github.com/nsf/gocode
+	GO111MODULE=off go get -u github.com/alecthomas/gometalinter
+	GO111MODULE=off go get -u github.com/wadey/gocovmerge
+	GO111MODULE=off $(GOPATH)/bin/gometalinter --install --update
 
 deps:
 	@echo -e "$(OK_COLOR)==> Installing dependencies ...$(NO_COLOR)"
-	@go get github.com/golang/dep/cmd/dep #Vendoring
-	@$(GOPATH)/bin/dep ensure
+	go get -v ./...
+	go mod vendor
 
 update-deps: dev-deps
 	@echo -e "$(OK_COLOR)==> Updating all dependencies ...$(NO_COLOR)"
-	@go get github.com/golang/dep/cmd/dep #Vendoring
-	$(GOPATH)/bin/dep ensure -update
+	go get -u -v ./...
+	go mod vendor
 
 done:
 	@echo -e "$(OK_COLOR)==> Done.$(NO_COLOR)"
