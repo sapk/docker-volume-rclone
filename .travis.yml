@@ -34,6 +34,7 @@ before_deploy:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME"
   -p="$DOCKER_PASSWORD"; fi
 - make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin-push
 deploy:
   provider: releases
   api_key:
