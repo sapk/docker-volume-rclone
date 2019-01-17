@@ -8,7 +8,7 @@ RUN make clean build
 RUN go get -u -v github.com/ncw/rclone
 
 FROM alpine
-MAINTAINER Antoine GIRARD <antoine.girard@sapk.fr>
+LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 RUN apk add --no-cache ca-certificates bash fuse \
  && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone

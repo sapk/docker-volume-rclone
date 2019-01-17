@@ -2,8 +2,10 @@ package driver
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,6 +27,16 @@ var (
 type rcloneMountpoint struct {
 	Path        string `json:"path"`
 	Connections int    `json:"connections"`
+}
+
+func (m *rcloneMountpoint) isMounted() (bool, error) {
+	//TODO Better check for remote /var/lib/docker-volumes/rclone/mountpath fuse.rclone ro,nosuid,nodev,relatime,user_id=0,group_id=0 0 0
+	buf, err := ioutil.ReadFile("/proc/mounts")
+	if err != nil {
+		return false, err
+	}
+	log.Debugf("isMounted Path: path: %s %v", m.Path, strings.Contains(string(buf), " "+m.Path+" fuse.rclone"))
+	return strings.Contains(string(buf), " "+m.Path+" fuse.rclone"), nil
 }
 
 type rcloneVolume struct {
@@ -254,19 +266,27 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		return nil, fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 
-	if m.Connections > 0 {
+	ready, err := m.isMounted()
+	if err != nil {
+		return nil, err
+	}
+	if ready {
 		v.Connections++
 		m.Connections++
 		if err := d.saveConfig(); err != nil {
 			return nil, err
 		}
 		return &volume.MountResponse{Mountpoint: m.Path}, nil
+	} else {
+		//Reset (maybe a reboot)
+		v.Connections = 0
+		m.Connections = 0
 	}
 
 	//TODO write temp file before dans don't use base64
 	var cmd string
 	if log.GetLevel() == log.DebugLevel {
-		cmd = fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
+		cmd = fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.%d.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", time.Now().Unix(), v.Config, v.Args, v.Remote, m.Path)
 	} else {
 		cmd = fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
 	}
@@ -310,16 +330,25 @@ func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 		return fmt.Errorf("volume mount %s not found for %s", v.Mount, r.Name)
 	}
 
-	if m.Connections <= 1 {
-		cmd := fmt.Sprintf("/usr/bin/umount %s", m.Path)
-		if err := d.runCmd(cmd); err != nil {
-			return err
-		}
+	mounted, err := m.isMounted()
+	if err != nil {
+		return err
+	}
+	if !mounted { //Force reset if not mounted
 		m.Connections = 0
 		v.Connections = 0
 	} else {
-		m.Connections--
-		v.Connections--
+		if m.Connections <= 1 {
+			cmd := fmt.Sprintf("/usr/bin/umount %s", m.Path)
+			if err := d.runCmd(cmd); err != nil {
+				return err
+			}
+			m.Connections = 0
+			v.Connections = 0
+		} else {
+			m.Connections--
+			v.Connections--
+		}
 	}
 
 	if err := d.saveConfig(); err != nil {
