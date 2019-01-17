@@ -209,12 +209,21 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	//if v.Connections == 0 {
 	//	if m.Connections == 0 {
 	//Unmount
-	if err := d.runCmd(fmt.Sprintf("umount \"%s\"", m.Path)); err != nil {
+	mounted, err := m.isMounted()
+	if err != nil {
 		return err
 	}
-	//Remove mount point
-	if err := os.Remove(m.Path); err != nil {
-		return err
+	if mounted { //Only if mounted
+		if err := d.runCmd(fmt.Sprintf("umount \"%s\"", m.Path)); err != nil {
+			return err
+		}
+	}
+
+	if _, err := os.Stat(m.Path); !os.IsNotExist(err) {
+		//Remove mount point
+		if err := os.Remove(m.Path); err != nil {
+			return err
+		}
 	}
 	delete(d.mounts, v.Mount)
 	//}
@@ -339,7 +348,7 @@ func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 		v.Connections = 0
 	} else {
 		if m.Connections <= 1 {
-			cmd := fmt.Sprintf("/usr/bin/umount %s", m.Path)
+			cmd := fmt.Sprintf("umount %s", m.Path)
 			if err := d.runCmd(cmd); err != nil {
 				return err
 			}
