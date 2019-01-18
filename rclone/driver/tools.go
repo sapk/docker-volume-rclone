@@ -9,7 +9,7 @@ import (
 	"os/exec"
 
 	"github.com/docker/go-plugins-helpers/volume"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 //RclonePersistence represent struct of persistence file
@@ -33,12 +33,12 @@ func (d *RcloneDriver) saveConfig() error {
 	}
 	b, err := json.Marshal(RclonePersistence{Version: CfgVersion, Volumes: d.volumes, Mounts: d.mounts})
 	if err != nil {
-		log.Warnf("Unable to encode persistence struct, %s", err.Error())
+		log.Warn().Err(err).Msg("Unable to encode persistence struct")
 	}
 	//log.Debug("Writing persistence struct, %v", b, d.volumes)
 	err = ioutil.WriteFile(CfgFolder+"/persistence.json", b, 0600)
 	if err != nil {
-		log.Warnf("Unable to write persistence struct, %s", err.Error())
+		log.Warn().Err(err).Msg("Unable to write persistence struct, %s")
 	}
 	//TODO display error messages
 	return err
@@ -46,7 +46,7 @@ func (d *RcloneDriver) saveConfig() error {
 
 // run deamon in context of this gvfs drive with custome env
 func (d *RcloneDriver) runCmd(cmd string) error {
-	log.Debugf(cmd)
+	log.Debug().Msg(cmd)
 	/*
 		cli := exec.Command("/bin/bash", "-c", cmd)
 		stdoutStderr, err := cli.CombinedOutput()

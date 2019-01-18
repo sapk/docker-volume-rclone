@@ -22,16 +22,17 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/magiconair/properties v1.8.0
 github.com/magiconair/properties
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
-# github.com/sirupsen/logrus v1.3.0
-github.com/sirupsen/logrus
+# github.com/rs/zerolog v1.11.0
+github.com/rs/zerolog
+github.com/rs/zerolog/log
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
 # github.com/spf13/afero v1.2.0
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -45,8 +46,6 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.3.1
 github.com/spf13/viper
-# golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc
-golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190110200230-915654e7eabc
 golang.org/x/net/proxy
 golang.org/x/net/internal/socks

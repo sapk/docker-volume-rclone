@@ -6,9 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/docker/go-plugins-helpers/volume"
-	"github.com/sapk/docker-volume-rclone/rclone/driver"
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
+
+	"github.com/sapk/docker-volume-rclone/rclone/driver"
 )
 
 const (
@@ -61,19 +63,19 @@ func Start() {
 	rootCmd.Long = fmt.Sprintf(longHelp, Version, Branch, Commit, BuildTime)
 	rootCmd.AddCommand(versionCmd, daemonCmd)
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 }
 
 //DaemonStart Start the deamon
 func DaemonStart(cmd *cobra.Command, args []string) {
 	d := driver.Init(baseDir)
-	log.Debug(d)
+	log.Debug().Msgf("driver: %v", d)
 	h := volume.NewHandler(d)
-	log.Debug(h)
+	log.Debug().Msgf("handler: %v", h)
 	err := h.ServeUnix(PluginAlias, 0)
 	if err != nil {
-		log.Debug(err)
+		log.Debug().Err(err)
 	}
 }
 
@@ -84,14 +86,16 @@ func setupFlags() {
 
 func setupLogger(cmd *cobra.Command, args []string) {
 	if verbose, _ := cmd.Flags().GetBool(VerboseFlag); verbose {
-		log.SetLevel(log.DebugLevel)
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		//Activate log to file in debug mode
 		f, err := os.OpenFile("/var/log/docker-volume-rclone.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal().Err(err)
 		}
-		log.SetOutput(f)
+		//log.SetOutput(f)
+		//logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
+		log.Logger = zerolog.New(f).With().Timestamp().Logger()
 	} else {
-		log.SetLevel(log.InfoLevel)
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 }
