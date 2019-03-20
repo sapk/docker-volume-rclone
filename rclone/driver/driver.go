@@ -11,9 +11,10 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-
 	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/spf13/viper"
+	
+	"github.com/sapk/docker-volume-helpers/tools"
 )
 
 var (
@@ -131,7 +132,7 @@ func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 		} else if err != nil {
 			return err
 		}
-		isempty, err := isEmpty(m.Path)
+		isempty, err := tools.FolderIsEmpty(m.Path)
 		if err != nil {
 			return err
 		}
