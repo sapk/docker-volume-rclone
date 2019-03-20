@@ -10,7 +10,7 @@ Status : **proof of concept (working)**
 
 Use Rclone cli in the plugin container so it depend on fuse on the host.
 
-## Docker plugin (New & Easy method) [![Docker Pulls](https://img.shields.io/docker/pulls/sapk/plugin-rclone.svg)](https://hub.docker.com/r/sapk/plugin-rclone) [![ImageLayers Size](https://img.shields.io/imagelayers/image-size/sapk/plugin-rclone/latest.svg)](https://hub.docker.com/r/sapk/plugin-rclone)
+## Docker plugin (Easy method) [![Docker Pulls](https://img.shields.io/docker/pulls/sapk/plugin-rclone.svg)](https://hub.docker.com/r/sapk/plugin-rclone) [![ImageLayers Size](https://img.shields.io/imagelayers/image-size/sapk/plugin-rclone/latest.svg)](https://hub.docker.com/r/sapk/plugin-rclone)
 ```
 docker plugin install sapk/plugin-rclone
 docker volume create --driver sapk/plugin-rclone --opt config="$(base64 ~/.config/rclone/rclone.conf)" --opt remote=some-remote:bucket/path --name test
