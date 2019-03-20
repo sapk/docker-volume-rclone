@@ -28,7 +28,7 @@ github.com/magiconair/properties
 github.com/mitchellh/mapstructure
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
-# github.com/rs/zerolog v1.11.0
+# github.com/rs/zerolog v1.13.0
 github.com/rs/zerolog
 github.com/rs/zerolog/log
 github.com/rs/zerolog/internal/cbor
@@ -46,10 +46,10 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.3.1
 github.com/spf13/viper
-# golang.org/x/net v0.0.0-20190110200230-915654e7eabc
+# golang.org/x/net v0.0.0-20190320064053-1272bf9dcd53
 golang.org/x/net/proxy
 golang.org/x/net/internal/socks
-# golang.org/x/sys v0.0.0-20190116161447-11f53e031339
+# golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.0
