@@ -60,23 +60,3 @@ func (d *RcloneDriver) runCmd(cmd string) error {
 func getMountName(d *RcloneDriver, r *volume.CreateRequest) string {
 	return r.Name
 }
-
-//based on: http://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
-func isEmpty(name string) (bool, error) {
-	f, err := os.Open(name)
-	if err != nil {
-		return false, err
-	}
-	defer func() {
-		cerr := f.Close()
-		if err == nil && cerr != nil {
-			err = cerr
-		}
-	}()
-
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
-	if err == io.EOF {
-		return true, nil
-	}
-	return false, err // Either not empty or error, suits both cases
-}
