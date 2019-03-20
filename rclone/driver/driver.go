@@ -189,9 +189,6 @@ func (d *RcloneDriver) Get(r *volume.GetRequest) (*volume.GetResponse, error) {
 
 //Remove remove the requested volume
 func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
-	//TODO remove related mounts
-	//TODO Error response from daemon: unable to remove volume: remove hubic-crypt: VolumeDriver.Remove: volume hubic-crypt is currently used by a container
-
 	log.Debug().Msgf("Entering Remove: name: %s", r.Name)
 	d.Lock()
 	defer d.Unlock()
@@ -207,9 +204,6 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 	}
 	log.Debug().Msgf("Mount found: %v", m)
 
-	//disable check as it seems to fail and in this plugin v.Mount = r.Name
-	//if v.Connections == 0 {
-	//	if m.Connections == 0 {
 	//Unmount
 	mounted, err := m.isMounted()
 	if err != nil {
@@ -228,16 +222,8 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 		}
 	}
 	delete(d.mounts, v.Mount)
-	//}
 	delete(d.volumes, r.Name)
 	return d.saveConfig()
-	//}
-	/*
-		if err := d.saveConfig(); err != nil {
-			return err
-		}
-		return fmt.Errorf("volume %s is currently used by a container", r.Name)
-	*/
 }
 
 //Path get path of the requested volume
@@ -294,7 +280,7 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 		m.Connections = 0
 	}
 
-	//TODO write temp file before dans don't use base64
+	//TODO write temp file before and don't use base64
 	var cmd string
 	if zerolog.GlobalLevel() == zerolog.DebugLevel {
 		cmd = fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.%d.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", time.Now().Unix(), v.Config, v.Args, v.Remote, m.Path)
