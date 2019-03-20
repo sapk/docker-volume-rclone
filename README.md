@@ -48,15 +48,21 @@ docker run -v test:/mnt --rm -ti ubuntu
 ```
 
 ## Docker-compose
+First put your rclone config in a env variable:
+```
+export RCLONE_CONF_BASE64=$(base64 ~/.config/rclone/rclone.conf)
+```
+And setup you docker-compose.yml file like that
 ```
 volumes:
   some_vol:
     driver: sapk/plugin-rclone
     driver_opts:
-      config: "$(base64 ~/.config/rclone/rclone.conf)"
+      config: "${RCLONE_CONF_BASE64}"
       args: "--read-only --fast-list"
       remote: "some-remote:bucket/path"
 ```
+You can also hard-code your config in the docker-compose file in place of the env variable.
 
 ## Inspired from :
  - https://github.com/ContainX/docker-volume-netshare/
