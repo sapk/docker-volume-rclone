@@ -158,13 +158,11 @@ update-dev-deps:
 
 deps:
 	@echo -e "$(OK_COLOR)==> Installing dependencies ...$(NO_COLOR)"
-	go get -v ./...
-	go mod vendor
+	go mod download
 
 update-deps: dev-deps
 	@echo -e "$(OK_COLOR)==> Updating all dependencies ...$(NO_COLOR)"
 	go get -u -v ./...
-	go mod vendor
 
 done:
 	@echo -e "$(OK_COLOR)==> Done.$(NO_COLOR)"
