@@ -11,6 +11,7 @@ PLUGIN_USER ?= sapk
 PLUGIN_NAME ?= plugin-rclone
 PLUGIN_TAG ?= latest
 PLUGIN_IMAGE ?= $(PLUGIN_USER)/$(PLUGIN_NAME):$(PLUGIN_TAG)
+PLUGIN_CONFIG ?= config.json
 
 GIT_HASH=$(shell git rev-parse --short HEAD)
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -50,8 +51,8 @@ docker-rootfs: docker-image
 	docker create --name $$cntr ${PLUGIN_IMAGE}; \
 	docker export $$cntr | tar -x -C ./plugin/rootfs; \
 	docker rm -vf $$cntr
-	@echo -e "### copy config.json to ./plugin/$(NO_COLOR)"
-	@cp config.json ./plugin/
+	@echo -e "### copy ${PLUGIN_CONFIG} to ./plugin/$(NO_COLOR)"
+	@cp ${PLUGIN_CONFIG} ./plugin/config.json
 
 docker-plugin-create:
 	@echo -e "$(OK_COLOR)==> Remove existing plugin : ${PLUGIN_IMAGE} if exists$(NO_COLOR)"
