@@ -14,18 +14,17 @@
             "value": "0"
         }
     ],
-    "Args": {
-        "Description": "",
-        "Name": "",
-        "Settable": null,
-        "Value": null
-    },
     "interface": {
         "socket": "rclone.sock",
         "types": [
             "docker.volumedriver/1.0"
         ]
     },
+    "mounts": [
+        {
+            "destination": "/var/cache"
+        }
+    ],
     "linux": {
         "capabilities": [
             "CAP_SYS_ADMIN"
