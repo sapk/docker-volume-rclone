@@ -1,3 +1,5 @@
+ARG RCLONE_VER=latest
+
 FROM golang:alpine AS build-env
 
 COPY . /docker-volume-rclone
@@ -6,8 +8,7 @@ WORKDIR /docker-volume-rclone
 RUN apk add --no-cache make git
 RUN make clean build
 
-ARG RCLONE_VER=latest
-FROM rclone/rclone:${RCLONE_VER}
+FROM rclone/rclone:$RCLONE_VER
 LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 RUN apk add --no-cache bash \
