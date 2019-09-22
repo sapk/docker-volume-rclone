@@ -6,7 +6,8 @@ WORKDIR /go/src/github.com/sapk/docker-volume-rclone
 RUN apk add --no-cache make git
 RUN make clean build
 
-FROM rclone/rclone
+ARG RCLONE_VER=latest
+FROM rclone/rclone:${RCLONE_VER}
 LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 RUN apk add --no-cache bash \
