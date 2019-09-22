@@ -5,7 +5,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-plugins-helpers v0.0.0-20181025120712-1e6269c305b8
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/rs/zerolog v1.14.3
+	github.com/rs/zerolog v1.15.0
 	github.com/sapk/docker-volume-helpers v0.0.0-20181203012140-afb03797d7bf
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.5
