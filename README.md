@@ -1,4 +1,4 @@
-# docker-volume-rclone [![License](https://img.shields.io/badge/license-MIT-red.svg)](https://github.com/sapk/docker-volume-rclone/blob/master/LICENSE) ![Project Status](http://img.shields.io/badge/status-alpha-red.svg)
+# docker-volume-rclone [![License](https://img.shields.io/badge/license-MIT-red.svg)](https://github.com/sapk/docker-volume-rclone/blob/master/LICENSE) ![Project Status](http://img.shields.io/badge/status-beta-orange.svg)
 [![GitHub release](https://img.shields.io/github/release/sapk/docker-volume-rclone.svg)](https://github.com/sapk/docker-volume-rclone/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/sapk/docker-volume-rclone)](https://goreportcard.com/report/github.com/sapk/docker-volume-rclone)
 [![codecov](https://codecov.io/gh/sapk/docker-volume-rclone/branch/master/graph/badge.svg)](https://codecov.io/gh/sapk/docker-volume-rclone)
  master : [![Travis master](https://api.travis-ci.org/sapk/docker-volume-rclone.svg?branch=master)](https://travis-ci.org/sapk/docker-volume-rclone) develop : [![Travis develop](https://api.travis-ci.org/sapk/docker-volume-rclone.svg?branch=develop)](https://travis-ci.org/sapk/docker-volume-rclone)
@@ -6,7 +6,7 @@
 
 Use Rclone as a backend for docker volume. This permit to easely mount a lot of cloud provider (https://rclone.org/overview/).
 
-Status : **proof of concept (working)**
+Status : **BETA (work and in use but still need improvements)**
 
 Use Rclone cli in the plugin container so it depend on fuse on the host.
 
