@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/docker/go-plugins-helpers/volume"
 	"github.com/spf13/viper"
-	
+
 	"github.com/sapk/docker-volume-helpers/tools"
 )
 
@@ -348,10 +348,7 @@ func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 		}
 	}
 
-	if err := d.saveConfig(); err != nil {
-		return err
-	}
-	return nil
+	return d.saveConfig()
 }
 
 //Capabilities Send capabilities of the local driver
