@@ -20,6 +20,19 @@
             "docker.volumedriver/1.0"
         ]
     },
+    "mounts": [
+        {
+          "name": "cache",
+          "description": "Cache folder to use for cache mount type",
+          "destination": "/var/cache/rclone",
+          "source": "/var/cache/rclone",
+          "settable": [
+            "source",
+            "destination"
+          ],
+          "type": "bind"
+        }
+    ],
     "linux": {
         "capabilities": [
             "CAP_SYS_ADMIN"
