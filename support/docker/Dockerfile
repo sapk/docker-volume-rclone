@@ -1,4 +1,5 @@
-ARG RCLONE_VER=1.49
+ARG RCLONE_VER=latest
+#1.49 doesn't contain fuse yet.
 
 FROM golang:alpine AS build-env
 
@@ -12,7 +13,8 @@ FROM rclone/rclone:$RCLONE_VER
 LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 RUN apk add --no-cache bash \
- && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone
+ && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone \
+ && ln -s /root/rclone /usr/bin/rclone
 COPY --from=build-env /docker-volume-rclone/docker-volume-rclone /usr/bin/docker-volume-rclone
 
 RUN /usr/bin/docker-volume-rclone version
