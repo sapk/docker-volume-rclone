@@ -281,6 +281,7 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 	}
 
 	//TODO write temp file before and don't use base64
+	//TODO locate rclone binary (/usr/bin/rclone, /usr/local/bin/rclone)
 	var cmd string
 	if zerolog.GlobalLevel() == zerolog.DebugLevel {
 		cmd = fmt.Sprintf("/usr/bin/rclone --log-file /var/log/rclone.%d.log --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", time.Now().Unix(), v.Config, v.Args, v.Remote, m.Path)
