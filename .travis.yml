@@ -28,18 +28,18 @@ script:
 - "./docker-volume-rclone"
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-before_deploy:
-- make compress
 - docker --version
 - make docker-plugin
-- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-plugin
-- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME"
   -p="$DOCKER_PASSWORD"; fi
 - make docker-plugin-push
-- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin-push
 - PLUGIN_TAG=with-mount make docker-plugin-push
+before_deploy:
+- make compress
+- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin
+- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin
+- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin-push
 - PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin-push
 deploy:
   provider: releases
