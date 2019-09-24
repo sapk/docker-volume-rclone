@@ -13,7 +13,7 @@ LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 #TODO 1.49 doesn't contain fuse yet.
 RUN apk add --no-cache bash fuse \
- && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone \
+ && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone /var/cache/rclone \
  && ln -s /root/rclone /usr/bin/rclone
 COPY --from=build-env /docker-volume-rclone/docker-volume-rclone /usr/bin/docker-volume-rclone
 
