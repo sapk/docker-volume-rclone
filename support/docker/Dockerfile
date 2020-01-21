@@ -1,4 +1,4 @@
-ARG RCLONE_VER=1.49
+ARG RCLONE_VER=1.50
 
 FROM golang:alpine AS build-env
 
@@ -11,9 +11,8 @@ RUN make clean build
 FROM rclone/rclone:$RCLONE_VER
 LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
-#TODO 1.49 doesn't contain fuse yet.
-RUN apk add --no-cache bash fuse \
- && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone \
+RUN apk add --no-cache bash \
+ && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone /var/cache/rclone \
  && ln -s /root/rclone /usr/bin/rclone
 COPY --from=build-env /docker-volume-rclone/docker-volume-rclone /usr/bin/docker-volume-rclone
 
