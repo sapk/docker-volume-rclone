@@ -1,4 +1,4 @@
-ARG RCLONE_VER=1.50
+ARG RCLONE_VER=1.51
 
 FROM golang:alpine AS build-env
 
