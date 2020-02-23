@@ -13,10 +13,10 @@ LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"
 
 RUN apk add --no-cache bash \
  && mkdir -p /var/lib/docker-volumes/rclone /etc/docker-volumes/rclone /var/cache/rclone \
- && ln -s /root/rclone /usr/bin/rclone
-COPY --from=build-env /docker-volume-rclone/docker-volume-rclone /usr/bin/docker-volume-rclone
+ && ln -s /usr/local/bin/rclone /usr/bin/rclone
+COPY --from=build-env /docker-volume-rclone/docker-volume-rclone /usr/local/bin/docker-volume-rclone
 
-RUN /usr/bin/docker-volume-rclone version
+RUN /usr/local/bin/docker-volume-rclone version
 
-ENTRYPOINT [ "/usr/bin/docker-volume-rclone" ]
+ENTRYPOINT [ "/usr/local/bin/docker-volume-rclone" ]
 CMD [ "daemon" ]
