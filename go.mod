@@ -9,7 +9,7 @@ require (
 	github.com/rs/zerolog v1.18.0
 	github.com/sapk/docker-volume-helpers v0.0.0-20181203012140-afb03797d7bf
 	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v0.0.6
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.6.2
