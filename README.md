@@ -79,7 +79,7 @@ docker plugin set sapk/plugin-rclone DEBUG=1
 docker plugin enable sapk/plugin-rclone
 
 #Get files under /var/log of plugin
-docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby list
-docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/rclone.log
-docker-runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/docker-volume-rclone.log
+runc --root /var/run/docker/plugins/runtime-root/plugins.moby list
+runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/rclone.log
+runc --root /var/run/docker/plugins/runtime-root/plugins.moby exec -t $CONTAINER_ID cat /var/log/docker-volume-rclone.log
 ```
