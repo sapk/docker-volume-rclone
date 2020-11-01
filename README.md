@@ -64,6 +64,23 @@ volumes:
 ```
 You can also hard-code your config in the docker-compose file in place of the env variable.
 
+## Healthcheck
+The docker plugin volume protocol doesn't allow the plugin to inform the container or the docker host that the volume is not available anymore.
+To ensure that the volume is always live, It is recommended to setup an healthcheck to verify that the mount is responding. 
+
+You can add an healthcheck like this example:
+```
+services:
+  server:
+    image: my_image
+    healthcheck:
+      test: ls /my/rclone/mount/folder || exit 1
+      interval: 1m
+      timeout: 15s
+      retries: 3
+      start_period: 15s
+```
+
 ## Inspired from :
  - https://github.com/ContainX/docker-volume-netshare/
  - https://github.com/vieux/docker-volume-sshfs/
