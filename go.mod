@@ -1,5 +1,7 @@
 module github.com/sapk/docker-volume-rclone
 
+go 1.15
+
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
@@ -18,5 +20,3 @@ require (
 	golang.org/x/sys v0.0.0-20190922100055-0a153f010e69 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
-
-go 1.14
