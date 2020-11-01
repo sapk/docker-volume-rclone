@@ -4,19 +4,24 @@ go 1.15
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
+	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-plugins-helpers v0.0.0-20181025120712-1e6269c305b8
-	github.com/pelletier/go-toml v1.4.0 // indirect
+	github.com/docker/go-plugins-helpers v0.0.0-20200102110956-c9a8a2d92ccc
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/magiconair/properties v1.8.4 // indirect
+	github.com/mitchellh/mapstructure v1.3.3 // indirect
+	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/sapk/docker-volume-helpers v0.0.0-20181203012140-afb03797d7bf
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/afero v1.4.1 // indirect
+	github.com/spf13/cast v1.3.1 // indirect
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.4.0 // indirect
-	golang.org/x/net v0.0.0-20190921015927-1a5e07d1ff72 // indirect
-	golang.org/x/sys v0.0.0-20190922100055-0a153f010e69 // indirect
+	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102 // indirect
+	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	golang.org/x/text v0.3.4 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	gopkg.in/ini.v1 v1.62.0 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
