@@ -37,13 +37,7 @@ var (
 	//PluginAlias plugin alias name in docker
 	PluginAlias = "rclone"
 	baseDir     = ""
-	rootCmd     = &cobra.Command{
-		Use:              "docker-volume-rclone",
-		Short:            "Rclone - Docker volume driver plugin",
-		Long:             longHelp,
-		PersistentPreRun: setupLogger,
-	}
-	daemonCmd = &cobra.Command{
+	daemonCmd   = &cobra.Command{
 		Use:   "daemon",
 		Short: "Run listening volume drive deamon to listen for mount request",
 		Run:   DaemonStart,
@@ -52,16 +46,31 @@ var (
 		Use:   "version",
 		Short: "Display current version and build date",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("\nVersion: %s - Branch: %s - Commit: %s - BuildTime: %s\n\n", Version, Branch, Commit, BuildTime)
+			fmt.Fprintf(cmd.OutOrStdout(), "\nVersion: %s - Branch: %s - Commit: %s - BuildTime: %s\n\n", Version, Branch, Commit, BuildTime)
 		},
 	}
 )
 
-//Start start the program
-func Start() {
-	setupFlags()
+//NewRootCmd setup the cobra root command
+func NewRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:              "docker-volume-rclone",
+		Short:            "Rclone - Docker volume driver plugin",
+		Long:             longHelp,
+		PersistentPreRun: setupLogger,
+	}
+	rootCmd.PersistentFlags().BoolP(VerboseFlag, "v", os.Getenv("DEBUG") == "1", "Turns on verbose logging")
+	rootCmd.PersistentFlags().StringVarP(&baseDir, BasedirFlag, "b", filepath.Join(volume.DefaultDockerRootDirectory, PluginAlias), "Mounted volume base directory")
+
 	rootCmd.Long = fmt.Sprintf(longHelp, Version, Branch, Commit, BuildTime)
 	rootCmd.AddCommand(versionCmd, daemonCmd)
+
+	return rootCmd
+}
+
+//Start start the program
+func Start() {
+	rootCmd := NewRootCmd()
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal().Err(err)
 	}
@@ -79,12 +88,8 @@ func DaemonStart(cmd *cobra.Command, args []string) {
 	}
 }
 
-func setupFlags() {
-	rootCmd.PersistentFlags().BoolP(VerboseFlag, "v", os.Getenv("DEBUG") == "1", "Turns on verbose logging")
-	rootCmd.PersistentFlags().StringVarP(&baseDir, BasedirFlag, "b", filepath.Join(volume.DefaultDockerRootDirectory, PluginAlias), "Mounted volume base directory")
-}
-
 func setupLogger(cmd *cobra.Command, args []string) {
+	logger := zerolog.New(cmd.OutOrStdout())
 	if verbose, _ := cmd.Flags().GetBool(VerboseFlag); verbose {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		//Activate log to file in debug mode
@@ -94,8 +99,10 @@ func setupLogger(cmd *cobra.Command, args []string) {
 		}
 		//log.SetOutput(f)
 		//logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
-		log.Logger = zerolog.New(f).With().Timestamp().Logger()
+		logger = zerolog.New(f).With().Timestamp().Logger()
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
+
+	log.Logger = logger
 }
