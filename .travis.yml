@@ -6,20 +6,27 @@ addons:
   apt:
     packages:
     - upx-ucl
+
 go:
 - "1.14"
 - "1.15"
 #- tip
+
 env:
-- GO111MODULE=on
+- GO111MODULE=on DOCKER_CLI_EXPERIMENTAL=enabled
+
 before_install:
 - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu
   $(lsb_release -cs) stable"
 - sudo apt-get update
 - sudo apt-get -y install docker-ce
+- docker buildx
 install:
 - make dev-deps
+- docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+- docker buildx create --use
+- docker buildx inspect --bootstrap
 script:
 - make lint
 - make build
