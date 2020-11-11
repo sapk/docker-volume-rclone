@@ -41,8 +41,8 @@ after_success:
   -p="$DOCKER_PASSWORD"; fi
 - make docker-plugin-push
 - PLUGIN_TAG=with-mount make docker-plugin-push
-- docker buildx build --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs -f support/docker/Dockerfile .
-- ls -lah ./plugin/rootfs/*
+- docker buildx build --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs-arch -f support/docker/Dockerfile .
+- ls -lah ./plugin/rootfs-arch*
 before_deploy:
 - make compress
 - PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin
