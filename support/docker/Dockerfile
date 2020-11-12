@@ -1,12 +1,16 @@
 ARG RCLONE_VER=1.53
+ARG BUILDPLATFORM=linux/amd64
 
-FROM golang:alpine AS build-env
+FROM --platform=$BUILDPLATFORM golang:alpine AS build-env
+
+ENV CGO_ENABLED=0
+ARG TARGETPLATFORM=linux/amd64
 
 COPY . /docker-volume-rclone
 WORKDIR /docker-volume-rclone
 
 RUN apk add --no-cache make git
-RUN make clean build
+RUN GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f2) make clean build
 
 FROM rclone/rclone:$RCLONE_VER
 LABEL maintainer="Antoine GIRARD <antoine.girard@sapk.fr>"

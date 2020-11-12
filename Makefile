@@ -40,25 +40,27 @@ build: clean format compile
 
 docker-plugin: docker-rootfs docker-plugin-create
 
+docker-buildx-plugin: docker-buildx-rootfs docker-plugin-create-linux-amd64 docker-plugin-create-linux-386 docker-plugin-create-linux-arm64 docker-plugin-create-linux-arm-v7
+
 docker-image:
 	@echo -e "$(OK_COLOR)==> Docker build image : ${PLUGIN_IMAGE} $(NO_COLOR)"
 	docker build --no-cache --pull -t ${PLUGIN_IMAGE} -f support/docker/Dockerfile .
 
 docker-rootfs: docker-image
-	@echo -e "$(OK_COLOR)==> create rootfs directory in ./plugin/rootfs$(NO_COLOR)"
-	@mkdir -p ./plugin/rootfs
+	@echo -e "$(OK_COLOR)==> create rootfs directory in ./plugin/default/rootfs$(NO_COLOR)"
+	@mkdir -p ./plugin/default/rootfs
 	@cntr=${PLUGIN_USER}-${PLUGIN_NAME}-${PLUGIN_TAG}-$$(date +'%Y%m%d-%H%M%S'); \
 	docker create --name $$cntr ${PLUGIN_IMAGE}; \
-	docker export $$cntr | tar -x -C ./plugin/rootfs; \
+	docker export $$cntr | tar -x -C ./plugin/default/rootfs; \
 	docker rm -vf $$cntr
-	@echo -e "### copy ${PLUGIN_CONFIG} to ./plugin/$(NO_COLOR)"
-	@cp ${PLUGIN_CONFIG} ./plugin/config.json
+	@echo -e "### copy ${PLUGIN_CONFIG} to ./plugin/default$(NO_COLOR)"
+	@cp ${PLUGIN_CONFIG} ./plugin/default/config.json
 
 docker-plugin-create:
 	@echo -e "$(OK_COLOR)==> Remove existing plugin : ${PLUGIN_IMAGE} if exists$(NO_COLOR)"
 	@docker plugin rm -f ${PLUGIN_IMAGE} || true
-	@echo -e "$(OK_COLOR)==> Create new plugin : ${PLUGIN_IMAGE} from ./plugin$(NO_COLOR)"
-	docker plugin create ${PLUGIN_IMAGE} ./plugin
+	@echo -e "$(OK_COLOR)==> Create new plugin : ${PLUGIN_IMAGE} from ./plugin/default$(NO_COLOR)"
+	docker plugin create ${PLUGIN_IMAGE} ./plugin/default
 
 docker-plugin-push:
 	@echo -e "$(OK_COLOR)==> push plugin : ${PLUGIN_IMAGE}$(NO_COLOR)"
@@ -67,6 +69,43 @@ docker-plugin-push:
 docker-plugin-enable:
 	@echo -e "$(OK_COLOR)==> Enable plugin ${PLUGIN_IMAGE}$(NO_COLOR)"
 	docker plugin enable ${PLUGIN_IMAGE}
+
+docker-buildx-rootfs: docker-buildx-rootfs-build docker-buildx-rootfs-organize-linux-amd64 docker-buildx-rootfs-organize-linux-386 docker-buildx-rootfs-organize-linux-arm64 docker-buildx-rootfs-organize-linux-arm-v7
+
+docker-buildx-rootfs-build: clean-buildx
+	@echo -e "$(OK_COLOR)==> create cross-platform rootfs directories in ./plugin/rootfs.tar$(NO_COLOR)"
+	@mkdir -p ./plugin/
+	@docker buildx build --progress plain --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs.tar -f support/docker/Dockerfile .
+	@tar -xf ./plugin/rootfs.tar -C ./plugin/
+	@rm ./plugin/rootfs.tar
+
+docker-buildx-rootfs-organize-%:
+	@mkdir -p ./plugin/$(subst -,_,$*)/rootfs
+	@mv ./plugin/$(subst -,_,$*)/bin ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/data ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/dev ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/etc ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/home ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/lib ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/media ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/mnt ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/opt ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/proc ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/root ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/run ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/sbin ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/srv ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/sys ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/tmp ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/usr ./plugin/$(subst -,_,$*)/rootfs/
+	@mv ./plugin/$(subst -,_,$*)/var ./plugin/$(subst -,_,$*)/rootfs/
+	@cp ${PLUGIN_CONFIG} ./plugin/$(subst -,_,$*)/config.json
+
+docker-plugin-create-%:
+	@echo -e "$(OK_COLOR)==> Remove existing plugin : ${PLUGIN_IMAGE} if exists$(NO_COLOR)"
+	@docker plugin rm -f "${PLUGIN_IMAGE}-$(subst _,-,$*)" || true
+	@echo -e "$(OK_COLOR)==> Create new plugin : ${PLUGIN_IMAGE} from ./plugin/$(subst -,_,$*)$(NO_COLOR)"
+	docker plugin create "${PLUGIN_IMAGE}-$(subst _,-,$*)" ./plugin/$(subst -,_,$*)
 
 compile:
 	@echo -e "$(OK_COLOR)==> Building...$(NO_COLOR)"
@@ -118,6 +157,9 @@ clean:
 	@rm -rf ./plugin
 	@go clean ./...
 
+clean-buildx:
+	@rm -rf ./plugin/linux_*
+
 compress:
 	@echo -e "$(OK_COLOR)==> Trying to compress binary ...$(NO_COLOR)"
 	@upx --brute $(APP_NAME) || upx-ucl --brute $(APP_NAME) || echo -e "$(WARN_COLOR)==> No tools found to compress binary.$(NO_COLOR)"
@@ -168,4 +210,4 @@ update-deps: dev-deps
 done:
 	@echo -e "$(OK_COLOR)==> Done.$(NO_COLOR)"
 
-.PHONY: all build docker-plugin docker-plugin-enable docker-plugin-push docker-plugin-create docker-rootfs docker-image compile release clean compress format test docs lint dev-deps update-dev-deps deps update-deps done
+.PHONY: all build docker-plugin docker-plugin-enable docker-plugin-push docker-plugin-create docker-rootfs docker-image compile release clean compress format test docs lint dev-deps update-dev-deps deps update-deps done docker-buildx-rootfs docker-buildx-rootfs-build clean-buildx docker-buildx-plugin docker-plugin-create-% docker-buildx-rootfs-organize-%

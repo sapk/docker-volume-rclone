@@ -56,6 +56,7 @@ func (d *RcloneDriver) runCmd(cmd string) error {
 	//TODO output log
 }
 
-func getMountName(d *RcloneDriver, r *volume.CreateRequest) string {
+//GetMountName return the translated volume name
+func GetMountName(d *RcloneDriver, r *volume.CreateRequest) string {
 	return r.Name
 }
