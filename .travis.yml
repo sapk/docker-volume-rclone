@@ -6,20 +6,28 @@ addons:
   apt:
     packages:
     - upx-ucl
+
 go:
 - "1.15"
 #- tip
+
 env:
-- GO111MODULE=on
+- GO111MODULE=on DOCKER_CLI_EXPERIMENTAL=enabled
+
 before_install:
 - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu
   $(lsb_release -cs) stable"
 - sudo apt-get update
 - sudo apt-get -y install docker-ce
+- docker buildx
 - curl https://rclone.org/install.sh | sudo bash
+
 install:
 - make dev-deps
+- docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+- docker buildx create --use --driver-opt image=moby/buildkit:master
+- docker buildx inspect --bootstrap
 script:
 - make lint
 - make build
@@ -30,16 +38,36 @@ after_success:
 - docker --version
 - make docker-plugin
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-plugin
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME"
-  -p="$DOCKER_PASSWORD"; fi
-- make docker-plugin-push
-- PLUGIN_TAG=with-mount make docker-plugin-push
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; then make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount make docker-plugin-push; fi
+- make docker-buildx-plugin
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-386 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-amd64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-arm64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-arm-v7 make docker-plugin-push; fi
+- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-buildx-plugin
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-386 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-amd64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-arm64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-arm-v7 make docker-plugin-push; fi
+
 before_deploy:
 - make compress
 - PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin
+- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-buildx-plugin
+- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-buildx-plugin
 - PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-386 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-arm-v7 make docker-plugin-push
 - PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-386 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-arm-v7 make docker-plugin-push
 deploy:
   provider: releases
   api_key:
