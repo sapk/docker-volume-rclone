@@ -337,7 +337,7 @@ func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 		v.Connections = 0
 	} else {
 		if m.Connections <= 1 {
-			cmd := fmt.Sprintf("umount %s", m.Path)
+			cmd := fmt.Sprintf("umount -l %s", m.Path)
 			if err := d.runCmd(cmd); err != nil {
 				return err
 			}
