@@ -37,18 +37,36 @@ after_success:
 - docker --version
 - make docker-plugin
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-plugin
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME"
-  -p="$DOCKER_PASSWORD"; fi
-- make docker-plugin-push
-- PLUGIN_TAG=with-mount make docker-plugin-push
-- docker buildx build --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs -f support/docker/Dockerfile .
-- ls -lah ./plugin/rootfs/*
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; then make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount make docker-plugin-push; fi
+- make docker-buildx-plugin
+- PLUGIN_TAG=latest-linux-386 make docker-plugin-push
+- PLUGIN_TAG=latest-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=latest-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=latest-linux-arm-v7 make docker-plugin-push
+- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-buildx-plugin
+- PLUGIN_TAG=with-mount-linux-386 make docker-plugin-push
+- PLUGIN_TAG=with-mount-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=with-mount-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=with-mount-linux-arm-v7 make docker-plugin-push
+
 before_deploy:
 - make compress
 - PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin
+- PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-buildx-plugin
+- PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-buildx-plugin
 - PLUGIN_TAG=$(git describe --tags --abbrev=0) make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-386 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-linux-arm-v7 make docker-plugin-push
 - PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-386 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-amd64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-arm64 make docker-plugin-push
+- PLUGIN_TAG=$(git describe --tags --abbrev=0)-with-mount-linux-arm-v7 make docker-plugin-push
 deploy:
   provider: releases
   api_key:
