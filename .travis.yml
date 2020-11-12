@@ -41,15 +41,15 @@ after_success:
 - if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; then make docker-plugin-push; fi
 - if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount make docker-plugin-push; fi
 - make docker-buildx-plugin
-- PLUGIN_TAG=latest-linux-386 make docker-plugin-push
-- PLUGIN_TAG=latest-linux-amd64 make docker-plugin-push
-- PLUGIN_TAG=latest-linux-arm64 make docker-plugin-push
-- PLUGIN_TAG=latest-linux-arm-v7 make docker-plugin-push
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-386 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-amd64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-arm64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=latest-linux-arm-v7 make docker-plugin-push; fi
 - PLUGIN_CONFIG=config.with-mount.json PLUGIN_TAG=with-mount make docker-buildx-plugin
-- PLUGIN_TAG=with-mount-linux-386 make docker-plugin-push
-- PLUGIN_TAG=with-mount-linux-amd64 make docker-plugin-push
-- PLUGIN_TAG=with-mount-linux-arm64 make docker-plugin-push
-- PLUGIN_TAG=with-mount-linux-arm-v7 make docker-plugin-push
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-386 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-amd64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-arm64 make docker-plugin-push; fi
+- if [ "$TRAVIS_BRANCH" = "master" && "$TRAVIS_EVENT_TYPE" != "pull_request"]; PLUGIN_TAG=with-mount-linux-arm-v7 make docker-plugin-push; fi
 
 before_deploy:
 - make compress

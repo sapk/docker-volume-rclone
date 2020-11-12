@@ -56,7 +56,7 @@ docker-rootfs: docker-image
 	@echo -e "### copy ${PLUGIN_CONFIG} to ./plugin/default$(NO_COLOR)"
 	@cp ${PLUGIN_CONFIG} ./plugin/default/config.json
 
-docker-plugin-create: 
+docker-plugin-create:
 	@echo -e "$(OK_COLOR)==> Remove existing plugin : ${PLUGIN_IMAGE} if exists$(NO_COLOR)"
 	@docker plugin rm -f ${PLUGIN_IMAGE} || true
 	@echo -e "$(OK_COLOR)==> Create new plugin : ${PLUGIN_IMAGE} from ./plugin/default$(NO_COLOR)"
