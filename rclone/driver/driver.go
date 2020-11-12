@@ -113,7 +113,7 @@ func (d *RcloneDriver) Create(r *volume.CreateRequest) error {
 		Config:      r.Options["config"],
 		Remote:      r.Options["remote"],
 		Args:        r.Options["args"],
-		Mount:       getMountName(d, r),
+		Mount:       GetMountName(d, r),
 		Connections: 0,
 		CreatedAt:   time.Now().Format(time.RFC3339),
 	}
