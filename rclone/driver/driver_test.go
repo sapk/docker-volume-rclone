@@ -47,7 +47,6 @@ func TestMountName(t *testing.T) {
 
 //Inspired from https://github.com/docker/go-plugins-helpers/blob/master/volume/api_test.go
 const (
-	manifest         = `{"Implements": ["VolumeDriver"]}`
 	createPath       = "/VolumeDriver.Create"
 	getPath          = "/VolumeDriver.Get"
 	listPath         = "/VolumeDriver.List"
@@ -159,6 +158,9 @@ func TestHandler(t *testing.T) {
 	// Remove
 	resp, err = pluginRequest(client, removePath, &volume.RemoveRequest{Name: "foo"})
 	assert.NoError(t, err)
+	var rmResp volume.ErrorResponse
+	assert.NoError(t, json.NewDecoder(resp).Decode(&rmResp))
+	assert.Equal(t, "", rmResp.Err)
 	//Re-List
 	resp, err = pluginRequest(client, listPath, nil)
 	assert.NoError(t, err)

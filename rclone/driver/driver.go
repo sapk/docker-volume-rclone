@@ -274,11 +274,12 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 			return nil, err
 		}
 		return &volume.MountResponse{Mountpoint: m.Path}, nil
-	} else {
-		//Reset (maybe a reboot)
-		v.Connections = 0
-		m.Connections = 0
 	}
+
+	//If not
+	//Reset (maybe a reboot)
+	v.Connections = 0
+	m.Connections = 0
 
 	//TODO write temp file before and don't use base64
 	//TODO locate rclone binary (/usr/bin/rclone, /usr/local/bin/rclone)

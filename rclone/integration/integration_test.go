@@ -21,14 +21,13 @@ import (
 
 //Inspired from https://github.com/docker/go-plugins-helpers/blob/master/volume/api_test.go
 const (
-	manifest         = `{"Implements": ["VolumeDriver"]}`
-	createPath       = "/VolumeDriver.Create"
-	getPath          = "/VolumeDriver.Get"
-	listPath         = "/VolumeDriver.List"
-	removePath       = "/VolumeDriver.Remove"
-	hostVirtualPath  = "/VolumeDriver.Path"
-	mountPath        = "/VolumeDriver.Mount"
-	unmountPath      = "/VolumeDriver.Unmount"
+	//createPath       = "/VolumeDriver.Create"
+	//getPath          = "/VolumeDriver.Get"
+	//listPath         = "/VolumeDriver.List"
+	//removePath       = "/VolumeDriver.Remove"
+	//hostVirtualPath  = "/VolumeDriver.Path"
+	//mountPath        = "/VolumeDriver.Mount"
+	//unmountPath      = "/VolumeDriver.Unmount"
 	capabilitiesPath = "/VolumeDriver.Capabilities"
 )
 
