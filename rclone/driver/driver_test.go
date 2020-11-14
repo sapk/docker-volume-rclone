@@ -135,19 +135,6 @@ func TestHandler(t *testing.T) {
 	assert.NoError(t, json.NewDecoder(resp).Decode(&pResp))
 	assert.Equal(t, filepath.Join(volumePath, "rclone", "foo"), pResp.Mountpoint)
 
-	// Mount
-	resp, err = pluginRequest(client, mountPath, &volume.MountRequest{Name: "foo"})
-	assert.NoError(t, err)
-	var mResp *volume.PathResponse
-	assert.NoError(t, json.NewDecoder(resp).Decode(&mResp))
-	assert.Equal(t, filepath.Join(volumePath, "rclone", "foo"), mResp.Mountpoint)
-
-	//Check content
-	filePathInVol := filepath.Join(mResp.Mountpoint, "test.file")
-	dataDetected, err := ioutil.ReadFile(filePathInVol)
-	assert.NoError(t, err)
-	assert.Equal(t, testData, dataDetected)
-
 	if os.Getenv("CI") == "true" {
 		//Re-List
 		resp, err = pluginRequest(client, listPath, nil)
@@ -155,6 +142,18 @@ func TestHandler(t *testing.T) {
 		assert.NoError(t, json.NewDecoder(resp).Decode(&lResp))
 		assert.Equal(t, 1, len(lResp.Volumes))
 	} else {
+		// Mount
+		resp, err = pluginRequest(client, mountPath, &volume.MountRequest{Name: "foo"})
+		assert.NoError(t, err)
+		var mResp *volume.PathResponse
+		assert.NoError(t, json.NewDecoder(resp).Decode(&mResp))
+		assert.Equal(t, filepath.Join(volumePath, "rclone", "foo"), mResp.Mountpoint)
+
+		//Check content
+		filePathInVol := filepath.Join(mResp.Mountpoint, "test.file")
+		dataDetected, err := ioutil.ReadFile(filePathInVol)
+		assert.NoError(t, err)
+		assert.Equal(t, testData, dataDetected)
 		// Unmount
 		resp, err = pluginRequest(client, unmountPath, &volume.UnmountRequest{Name: "foo"})
 		assert.NoError(t, err)
