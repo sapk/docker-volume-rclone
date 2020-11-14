@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -44,7 +45,7 @@ func (d *RcloneDriver) saveConfig() error {
 }
 
 // run deamon in context of this gvfs drive with custome env
-func (d *RcloneDriver) runCmd(cmd string) error {
+func (d *RcloneDriver) runCmd(cmd string) (context.Context, error) {
 	log.Debug().Msg(cmd)
 	/*
 		cli := exec.Command("/bin/bash", "-c", cmd)
@@ -52,7 +53,8 @@ func (d *RcloneDriver) runCmd(cmd string) error {
 		log.Debugf("%s", stdoutStderr)
 		return err
 	*/
-	return exec.Command("/bin/bash", "-c", cmd).Run()
+	ctx := context.Background()
+	return ctx, exec.CommandContext(ctx, "/bin/bash", "-c", cmd).Run()
 	//TODO output log
 }
 

@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -27,8 +28,9 @@ var (
 )
 
 type rcloneMountpoint struct {
-	Path        string `json:"path"`
-	Connections int    `json:"connections"`
+	Path        string          `json:"path"`
+	Connections int             `json:"connections"`
+	Context     context.Context `json:"-"`
 }
 
 func (m *rcloneMountpoint) isMounted() (bool, error) {
@@ -210,8 +212,14 @@ func (d *RcloneDriver) Remove(r *volume.RemoveRequest) error {
 		return err
 	}
 	if mounted { //Only if mounted
-		if err := d.runCmd(fmt.Sprintf("umount \"%s\"", m.Path)); err != nil {
-			return err
+		if _, err := d.runCmd(fmt.Sprintf(`umount -l "%s"`, m.Path)); err != nil {
+			time.Sleep(15 * time.Second) //Wait a little adn force unmount
+			if _, err := d.runCmd(fmt.Sprintf(`umount -f "%s"`, m.Path)); err != nil {
+				return err
+			}
+		}
+		if m.Context != nil {
+			m.Context.Done()
 		}
 	}
 
@@ -289,7 +297,9 @@ func (d *RcloneDriver) Mount(r *volume.MountRequest) (*volume.MountResponse, err
 	} else {
 		cmd = fmt.Sprintf("/usr/bin/rclone --config=<(echo \"%s\"| base64 -d) %s mount \"%s\" \"%s\" & sleep 5s", v.Config, v.Args, v.Remote, m.Path)
 	}
-	if err := d.runCmd(cmd); err != nil {
+
+	m.Context, err = d.runCmd(cmd)
+	if err != nil {
 		return nil, err
 	}
 
@@ -338,12 +348,14 @@ func (d *RcloneDriver) Unmount(r *volume.UnmountRequest) error {
 		v.Connections = 0
 	} else {
 		if m.Connections <= 1 {
-			cmd := fmt.Sprintf("umount -l %s", m.Path)
-			if err := d.runCmd(cmd); err != nil {
+			if _, err := d.runCmd(fmt.Sprintf(`umount -l "%s"`, m.Path)); err != nil {
 				time.Sleep(15 * time.Second) //Wait a little adn force unmount
-				if err := d.runCmd(fmt.Sprintf("umount -f %s", m.Path)); err != nil {
+				if _, err := d.runCmd(fmt.Sprintf(`umount -f "%s"`, m.Path)); err != nil {
 					return err
 				}
+			}
+			if m.Context != nil {
+				m.Context.Done()
 			}
 			m.Connections = 0
 			v.Connections = 0
