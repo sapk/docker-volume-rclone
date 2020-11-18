@@ -40,7 +40,7 @@ build: clean format compile
 
 docker-plugin: docker-rootfs docker-plugin-create
 
-docker-buildx-plugin: docker-buildx-rootfs docker-plugin-create-linux-amd64 docker-plugin-create-linux-386 docker-plugin-create-linux-arm64 docker-plugin-create-linux-arm-v7
+docker-buildx-plugin: docker-buildx-rootfs docker-plugin-create-linux-arm64 docker-plugin-create-linux-arm-v7
 
 docker-image:
 	@echo -e "$(OK_COLOR)==> Docker build image : ${PLUGIN_IMAGE} $(NO_COLOR)"
@@ -70,12 +70,12 @@ docker-plugin-enable:
 	@echo -e "$(OK_COLOR)==> Enable plugin ${PLUGIN_IMAGE}$(NO_COLOR)"
 	docker plugin enable ${PLUGIN_IMAGE}
 
-docker-buildx-rootfs: docker-buildx-rootfs-build docker-buildx-rootfs-organize-linux-amd64 docker-buildx-rootfs-organize-linux-386 docker-buildx-rootfs-organize-linux-arm64 docker-buildx-rootfs-organize-linux-arm-v7
+docker-buildx-rootfs: docker-buildx-rootfs-build docker-buildx-rootfs-organize-linux-arm64 docker-buildx-rootfs-organize-linux-arm-v7
 
 docker-buildx-rootfs-build: clean-buildx
 	@echo -e "$(OK_COLOR)==> create cross-platform rootfs directories in ./plugin/rootfs.tar$(NO_COLOR)"
 	@mkdir -p ./plugin/
-	@docker buildx build --progress plain --platform linux/amd64,linux/386,linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs.tar -f support/docker/Dockerfile .
+	@docker buildx build --progress plain --platform linux/arm64,linux/arm/v7 -o type=tar,dest=./plugin/rootfs.tar -f support/docker/Dockerfile .
 	@tar -xf ./plugin/rootfs.tar -C ./plugin/
 	@rm ./plugin/rootfs.tar
 
