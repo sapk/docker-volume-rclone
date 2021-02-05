@@ -47,6 +47,15 @@ docker volume create --driver rclone --opt config="$(base64 ~/.config/rclone/rcl
 docker run -v test:/mnt --rm -ti ubuntu
 ```
 
+## Allow acces to non-root user
+Some image doesn't run with the root user (and for good reason). To allow the volume to be accesible to the container user you need to add some mount option: `--opt args="--uid 1001 --gid 1001 --allow-root --allow-other"`.
+
+For example, to run an ubuntu image with an non root user (uid 33) and mount a volume: 
+```
+docker volume create --driver sapk/plugin-rclone --opt config="$(base64 ~/.config/rclone/rclone.conf)" --opt args="--uid 33 --gid 33 --allow-root --allow-other" --opt remote=some-remote:bucket/path --name test
+docker run -i -t -u 33:33 --rm -v test:/mnt ubuntu /bin/ls -lah /mnt
+```
+
 ## Docker-compose
 First put your rclone config in a env variable:
 ```
